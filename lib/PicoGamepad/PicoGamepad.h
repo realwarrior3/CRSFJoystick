@@ -40,35 +40,53 @@
 #define BTN112_119 14
 #define BTN120_127 15
 
+
+// STANDARD ANALOG CONTROLS
+
 #define X_AXIS_LSB 16
 #define X_AXIS_MSB 17
 #define Y_AXIS_LSB 18
 #define Y_AXIS_MSB 19
+#define Z_AXIS_LSB 20
+#define Z_AXIS_MSB 21
 
-#define HAT0_1 20 // Hats are 4 bit direction (0-9), 2 hats per byte
-#define HAT2_3 21
+#define Rx_AXIS_LSB 22
+#define Rx_AXIS_MSB 23
+#define Ry_AXIS_LSB 24
+#define Ry_AXIS_MSB 25
+#define Rz_AXIS_LSB 26
+#define Rz_AXIS_MSB 27
 
-#define Z_AXIS_LSB 22
-#define Z_AXIS_MSB 23
-#define Rx_AXIS_LSB 24
-#define Rx_AXIS_MSB 25
-#define Ry_AXIS_LSB 26
-#define Ry_AXIS_MSB 27
-#define Rz_AXIS_LSB 28
-#define Rz_AXIS_MSB 29
+#define SLIDER_AXIS_LSB 28
+#define SLIDER_AXIS_MSB 29
+#define DIAL_AXIS_LSB 30
+#define DIAL_AXIS_MSB 31
 
-#define THROTTLE_AXIS_LSB 30
-#define THROTTLE_AXIS_MSB 31
+// EXTENDED ANALOG CONTROLS
+#define WHEEL_AXIS_LSB 32
+#define WHEEL_AXIS_MSB 33
+#define Vx_AXIS_LSB 34
+#define Vx_AXIS_MSB 35
+#define Vy_AXIS_LSB 36
+#define Vy_AXIS_MSB 37
+#define Vz_AXIS_LSB 38
+#define Vz_AXIS_MSB 39
 
-#define S0_AXIS_LSB 32
-#define S0_AXIS_MSB 33
-#define S1_AXIS_LSB 34
-#define S1_AXIS_MSB 35
+#define Vbrx_AXIS_LSB 40
+#define Vbrx_AXIS_MSB 41
+#define Vbry_AXIS_LSB 42
+#define Vbry_AXIS_MSB 43
+#define Vbrz_AXIS_LSB 44
+#define Vbrz_AXIS_MSB 45
+#define Vno_AXIS_LSB 46
+#define Vno_AXIS_MSB 47
 
-// Size of the HID input payload in bytes, excluding the report ID byte.
-#define INPUT_ARRAY_SIZE 36
-// Total size of the USB report in bytes, including the 0x01 report ID.
-#define HID_REPORT_TOTAL_SIZE (INPUT_ARRAY_SIZE + 1)
+
+// Fix vs upstream: 16 axes occupy bytes 16..47, so the two hat bytes are 48/49.
+// Upstream had 50/51 here, which pushed the hats outside the transmitted report
+// and made SetHat() write past the end of inputArray[].
+#define HAT0_1 48 // Hats are 4 bit direction (0-9), 2 hats per byte
+#define HAT2_3 49
 
 #define HAT_DIR_N 0
 #define HAT_DIR_NE 1
@@ -143,21 +161,27 @@ namespace arduino
 
         bool send_inputs(uint8_t *values);
 
-        bool test_send(uint16_t b0, uint16_t b1, uint16_t b2, uint16_t b3, uint16_t b4, uint16_t b5, uint16_t b6, uint16_t b7,
-                       uint16_t x, uint16_t y, uint16_t hats, uint16_t z, uint16_t Rx, uint16_t Ry, uint16_t Rz, uint16_t s0, uint16_t s1);
-
+        
         bool randomizeInputs();
 
         void SetButton(int idx, bool val);
+        void SetAxis(int idx, uint16_t val);
         void SetX(uint16_t val);
         void SetY(uint16_t val);
         void SetZ(uint16_t val);
         void SetRx(uint16_t val);
         void SetRy(uint16_t val);
         void SetRz(uint16_t val);
-        void SetS0(uint16_t val);
-        void SetThrottle(uint16_t val);
-        void SetS1(uint16_t val);
+        void SetSlider(uint16_t val);
+        void SetDial(uint16_t val);
+        void SetWheel(uint16_t val);
+        void SetVx(uint16_t val);
+        void SetVy(uint16_t val);
+        void SetVz(uint16_t val);
+        void SetVbrx(uint16_t val);
+        void SetVbry(uint16_t val);
+        void SetVbrz(uint16_t val);
+        void SetVno(uint16_t val);
 
         // 4 Hats available 0-3, direction is clockwise 0=N 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW 8=CENTER
         void SetHat(uint8_t hatIdx, uint8_t dir);
@@ -179,7 +203,8 @@ namespace arduino
         virtual const uint8_t *configuration_desc(uint8_t index);
 
     private:
-        uint8_t inputArray[INPUT_ARRAY_SIZE];
+        // 16 buttons (16 B) + 16 axes (32 B) + 4 hats (2 B) = 50 bytes
+        uint8_t inputArray[50];
 
         uint8_t _configuration_descriptor[41];
         PlatformMutex _mutex;

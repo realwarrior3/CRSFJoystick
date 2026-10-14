@@ -1,8 +1,16 @@
 # Raspberry Pi Pico Gamepad/Joystick Library
 
-**Version 1.0.0**
+**Version 1.0.1**
 
 This library works with the Arduino IDE, it is designed to work with the Raspberry Pi Pico, it may work on other RP2040 boards but hasn't been tested.
+
+NOTE: This library works with the Arduino MBED OS RP2040 core for the Raspberry Pi Pico.
+      It doesn't work with the Earle Philhower core. If you're getting an error about "PluggableUSBHID.h", that's why.
+
+> **Note (this fork):** This copy is synced with upstream PicoGamepad (2025-04-28,
+> 16 axes) with local bug fixes: hat byte offsets corrected to 48/49, the `Vx`
+> HID usage fixed to `0x40`, `SetButton()` bounds fixed (`>= 128`), `inputArray`
+> zeroed in the constructors, and the invalid "System Undefined" axis removed.
 
 This library was created for use with the RealRobots [rr_configurator](https://www.gitlab.com/realrobots/rr_configurator) GUI based game controller customization software but is being made available freely for use and modification by others.
 
@@ -11,6 +19,14 @@ This library was created for use with the RealRobots [rr_configurator](https://w
 ### API
 
 - `send_update()   - Send HID report, values won't be sent until this is called.`
+
+- `SetAxis(int idx, int val)   - Set the value of axis 0-15 with 16 bit precision  -32767 to 32767.`
+
+- `SetButton(int idx, bool state) - Sets the state of any of the buttons, indexed 0-127`
+
+- `SetHat(int idx, int dir) - Set the direction of hats indexed 0-3.` 
+
+  -  `direction is clockwise 0=N 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW 8=CENTER`
 
 - `SetX(int val)  - Set the value of the X axis with 16 bit precision	 -32767 to 32767`
 
@@ -24,16 +40,25 @@ This library was created for use with the RealRobots [rr_configurator](https://w
 
 - `SetRz(int val) - Set the value of the Rz axis with 16 bit precision	 -32767 to 32767`
 
-- `SetThrottle(int val) - Set the value of the Throttle axis with 16 bit precision	 -32767 to 32767`
+- `SetSlider(int val) - Set the value of the Slider axis with 16 bit precision	 -32767 to 32767`
 
-- `SetS0(int val) - Set the value of the S0 axis with 16 bit precision	 -32767 to 32767`
+- `SetDial(int val) - Set the value of the Dial axis with 16 bit precision	 -32767 to 32767`
 
-- `SetButton(int idx, bool state) - Sets the state of any of the buttons, indexed 0-127`
+- `SetWheel(int val) - Set the value of the Wheel axis with 16 bit precision	 -32767 to 32767`
 
-- `SetHat(int idx, int dir) - Set the direction of hats indexed 0-3.` 
+- `SetVx(int val) - Set the value of the Vx axis with 16 bit precision	 -32767 to 32767`
 
-  -  `direction is clockwise 0=N 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW 8=CENTER`
+- `SetVy(int val) - Set the value of the Vy axis with 16 bit precision	 -32767 to 32767`
 
+- `SetVz(int val) - Set the value of the Vz axis with 16 bit precision	 -32767 to 32767`
+
+- `SetVbrx(int val) - Set the value of the Vbrx axis with 16 bit precision	 -32767 to 32767`
+
+- `SetVbry(int val) - Set the value of the Vbry axis with 16 bit precision	 -32767 to 32767`
+
+- `SetVbrz(int val) - Set the value of the Vbrz axis with 16 bit precision	 -32767 to 32767`
+
+- `SetVno(int val) - Set the value of the Vno axis with 16 bit precision	 -32767 to 32767`
 
 [Video instructions](https://www.youtube.com/watch?v=CNF7G-1LniI)
 
@@ -76,27 +101,42 @@ void loop() {
   val = analogRead(27);
   val = map(val, 0, 1023, -32767, 32767);
   gamepad.SetY(val);
+
   
-//  gamepad.SetZ(val);
-//  gamepad.SetRx(val);
-//  gamepad.SetRy(val);
-//  gamepad.SetRz(val);
-//  gamepad.SetS0(val);
-//  gamepad.SetS1(val);
+
+  // Other Axis Options
+  /* BY INDEX 0-15 */
+  // gamepad.SetAxis(0, val);
+
+  /* BY NAME */
+  // gamepad.SetZ(val);
+  // gamepad.SetRx(val);
+  // gamepad.SetRy(val);
+  // gamepad.SetRz(val);
+  // gamepad.SetSlider(val);
+  // gamepad.SetDial(val);
+  // gamepad.SetWheel(val);
+  // gamepad.SetVx(val);
+  // gamepad.SetVy(val);
+  // gamepad.SetVz(val);
+  // gamepad.SetVbrx(val);
+  // gamepad.SetVbry(val);
+  // gamepad.SetVbrz(val);
+  // gamepad.SetVno(val);
 
   // Set button 0 of 128 by reading button on digital pin 28
   gamepad.SetButton(0, !digitalRead(28));
 
-  // Set hat direction, 4 hats available. direction is clockwise 0=N 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW 8=CENTER 
+  // Set hat direction, 4 hats available. direction is clockwise 0=N 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW 8=CENTER
   // gamepad.SetHat(0, 8);
 
 
-  // Send all inputs via HID 
+  // Send all inputs via HID
   // Nothing is send to your computer until this is called.
   gamepad.send_update();
 
   // Flash the LED just for fun
-  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN)); 
+  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
   delay(100);
 }
 

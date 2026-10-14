@@ -48,9 +48,8 @@ void setFailsafeState()
     gamepad.SetRx(0);
     gamepad.SetRy(0);
     gamepad.SetRz(0);
-    gamepad.SetThrottle(0);
-    gamepad.SetS0(0);
-    gamepad.SetS1(0);
+    gamepad.SetDial(0);
+    gamepad.SetSlider(0);
 
     for (uint8_t i = 0; i < NUM_BUTTONS; i++)
         gamepad.SetButton(btn_map[i].id, LOW);
@@ -123,30 +122,26 @@ void packetChannels()
       JOYSTICK_HIGH);
     gamepad.SetRz(map_data);
 
-    // Rx — Канал 7
+    // Dial — Канал 7
     channel_data = crsf.getChannel(7);
     map_data = map(channel_data, \
       CHANNEL_7_LOW_EP,          \
       CHANNEL_7_HIGH_EP,         \
       JOYSTICK_LOW,              \
       JOYSTICK_HIGH);
-    gamepad.SetThrottle(map_data);
+    gamepad.SetDial(map_data);
 
-    // Rx — Канал 8
+    // Slider — Канал 8
     channel_data = crsf.getChannel(8);
     map_data = map(channel_data, \
       CHANNEL_8_LOW_EP,          \
       CHANNEL_8_HIGH_EP,         \
       JOYSTICK_LOW,              \
       JOYSTICK_HIGH);
-    gamepad.SetS0(map_data);
+    gamepad.SetSlider(map_data);
 
-    // Ry — не використовується
-    // gamepad.SetRy(map_data);
-    // Rz — не використовується
-    // gamepad.SetRz(map_data);
-    // S0 — не використовується
-    // gamepad.SetS0(map_data);
+    // Решта осей (Wheel, Vx..Vno) не використовується: HID-дескриптор їх
+    // експортує, але ми залишаємо їх у нулі (див. PicoGamepad).
 
     // Багатопозиційні перемикачі налаштовуються у calibrations.h
     // Кнопка звітує HIGH, коли канал перебуває в межах нижньої/верхньої межі
@@ -203,7 +198,7 @@ static void passthroughBegin(uint32_t baud)
         // Надсилаємо команду перезавантаження, бо хочемо передати
         // reboot на 420000, а потім перемкнутися на потрібну користувачу швидкість
         const uint8_t rebootpayload[] = { 'b', 'l' };
-        crsf.queuePacket(CRSF_ADDRESS_CRSF_RECEIVER, CRSF_FRAMETYPE_COMMAND, &rebootpayload, sizeof(rebootpayload));
+        crsf.queuePacket(CRSF_FRAMETYPE_COMMAND, &rebootpayload, sizeof(rebootpayload), CRSF_ADDRESS_CRSF_RECEIVER);
     }
     crsf.setPassthroughMode(true, baud);
 

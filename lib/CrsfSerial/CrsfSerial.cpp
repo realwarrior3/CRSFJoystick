@@ -33,7 +33,8 @@
 CrsfSerial::CrsfSerial(HardwareSerial &port, uint32_t baud) :
     _port(port), _crc(0xd5), _baud(baud),
     _lastReceive(0), _lastChannelsPacket(0), _linkIsUp(false),
-    _passthroughBaud(0)
+    _passthroughBaud(0),
+    _linkStatistics{}, _gpsSensor{}, _vbatSensor{}
 {}
 
 void CrsfSerial::begin(uint32_t baud)
@@ -136,21 +137,21 @@ void CrsfSerial::checkLinkDown()
 void CrsfSerial::processPacketIn(uint8_t len)
 {
     const crsf_header_t *hdr = (crsf_header_t *)_rxBuf;
-    if (hdr->device_addr == CRSF_ADDRESS_FLIGHT_CONTROLLER)
+    switch (hdr->type)
     {
-        switch (hdr->type)
-        {
-        case CRSF_FRAMETYPE_GPS:
-            packetGps(hdr);
-            break;
-        case CRSF_FRAMETYPE_RC_CHANNELS_PACKED:
-            packetChannelsPacked(hdr);
-            break;
-        case CRSF_FRAMETYPE_LINK_STATISTICS:
-            packetLinkStatistics(hdr);
-            break;
-        }
-    } // CRSF_ADDRESS_FLIGHT_CONTROLLER
+    case CRSF_FRAMETYPE_GPS:
+        packetGps(hdr);
+        break;
+    case CRSF_FRAMETYPE_BATTERY_SENSOR:
+        packetVbat(hdr);
+        break;
+    case CRSF_FRAMETYPE_RC_CHANNELS_PACKED:
+        packetChannelsPacked(hdr);
+        break;
+    case CRSF_FRAMETYPE_LINK_STATISTICS:
+        packetLinkStatistics(hdr);
+        break;
+    }
 }
 
 // Shift the bytes in the RxBuf down by cnt bytes
@@ -177,26 +178,24 @@ void CrsfSerial::shiftRxBuffer(uint8_t cnt)
 
 void CrsfSerial::packetChannelsPacked(const crsf_header_t *p)
 {
-    crsf_channels_t *ch = (crsf_channels_t *)&p->data;
-    _channels[0] = ch->ch0;
-    _channels[1] = ch->ch1;
-    _channels[2] = ch->ch2;
-    _channels[3] = ch->ch3;
-    _channels[4] = ch->ch4;
-    _channels[5] = ch->ch5;
-    _channels[6] = ch->ch6;
-    _channels[7] = ch->ch7;
-    _channels[8] = ch->ch8;
-    _channels[9] = ch->ch9;
-    _channels[10] = ch->ch10;
-    _channels[11] = ch->ch11;
-    _channels[12] = ch->ch12;
-    _channels[13] = ch->ch13;
-    _channels[14] = ch->ch14;
-    _channels[15] = ch->ch15;
+    // Unpack CRSF channel data stored bytewise 11 bits / channel
+    // Code assumes there is enough payload for all the channels
+    constexpr unsigned inputMask = (1 << CRSF_BITS_PER_CHANNEL) - 1;
+    const uint8_t *buf = p->data;
+    unsigned scratch = 0;
+    unsigned bitsInScratch = 0;
+    for (unsigned ch=0; ch<CRSF_NUM_CHANNELS; ++ch)
+    {
+        while (bitsInScratch < CRSF_BITS_PER_CHANNEL)
+        {
+            scratch |= (*buf++) << bitsInScratch;
+            bitsInScratch += 8;
+        }
 
-    for (unsigned int i=0; i<CRSF_NUM_CHANNELS; ++i)
-        _channels[i] = map(_channels[i], CRSF_CHANNEL_VALUE_1000, CRSF_CHANNEL_VALUE_2000, 1000, 2000);
+        _channels[ch] = CRSF_to_US(scratch & inputMask);
+        scratch >>= CRSF_BITS_PER_CHANNEL;
+        bitsInScratch -= CRSF_BITS_PER_CHANNEL;
+    }
 
     if (!_linkIsUp && onLinkUp)
         onLinkUp();
@@ -211,6 +210,19 @@ void CrsfSerial::packetLinkStatistics(const crsf_header_t *p)
 {
     const crsfLinkStatistics_t *link = (crsfLinkStatistics_t *)p->data;
     memcpy(&_linkStatistics, link, sizeof(_linkStatistics));
+
+    // This is for the TX, but checkLinkDown() will keep triggering
+    // due to no channels coming in, so this is disabled for now
+    // because the timeout needs to be a function of packet rate
+    // bool linkIsUp = _linkStatistics.uplink_Link_quality != 0;
+    // if (linkIsUp != _linkIsUp)
+    // {
+    //     _linkIsUp = linkIsUp;
+    //     if (_linkIsUp && onLinkUp)
+    //         onLinkUp();
+    //     else if (!_linkIsUp && onLinkDown)
+    //         onLinkDown();
+    // }
 
     if (onPacketLinkStatistics)
         onPacketLinkStatistics(&_linkStatistics);
@@ -230,6 +242,18 @@ void CrsfSerial::packetGps(const crsf_header_t *p)
         onPacketGps(&_gpsSensor);
 }
 
+void CrsfSerial::packetVbat(const crsf_header_t *p)
+{
+    const crsf_sensor_battery_t *vbat = (crsf_sensor_battery_t *)p->data;
+    _vbatSensor.voltage = be16toh(vbat->voltage);
+    _vbatSensor.current = be16toh(vbat->current);
+    _vbatSensor.capacity = be24toh(vbat->capacity);
+    _vbatSensor.remaining = vbat->remaining;
+
+    if (onPacketVbat)
+        onPacketVbat(&_vbatSensor);
+}
+
 void CrsfSerial::write(uint8_t b)
 {
     _port.write(b);
@@ -240,7 +264,7 @@ void CrsfSerial::write(const uint8_t *buf, size_t len)
     _port.write(buf, len);
 }
 
-void CrsfSerial::queuePacket(uint8_t addr, uint8_t type, const void *payload, uint8_t len)
+void CrsfSerial::queuePacket(uint8_t type, const void *payload, uint8_t len, uint8_t addr)
 {
     if (getPassthroughMode())
         return;
@@ -255,6 +279,40 @@ void CrsfSerial::queuePacket(uint8_t addr, uint8_t type, const void *payload, ui
     buf[len+3] = _crc.calc(&buf[2], len + 1);
 
     write(buf, len + 4);
+}
+
+/***
+ * @brief: Write 16 channels out as a handset would
+ * @details:    TX ONLY! Packs the us channel data which has been set with setChannel()
+ *              and writes it to the connected CRSF transmitter module.
+ *              External CRSF transmitters are usually half duplex inverted
+ *              and also scheduled by the module sending timing data, this
+ *              code handles none of that. This will, however, get a
+ *              transmitter to start transmitting channels.
+ */
+void CrsfSerial::queuePacketChannels()
+{
+   // 11 bits per channel * 16 channels = 176 bits = 22 bytes
+    uint8_t packedChannels[(CRSF_NUM_CHANNELS * CRSF_BITS_PER_CHANNEL + 7) / 8];
+    uint8_t *pbuf = packedChannels;
+
+    // Pack 11 bit channels low byte first into packedChannels
+    uint32_t scratch = 0;
+    uint32_t bitsInScratch = 0;
+    for (unsigned ch=0; ch<CRSF_NUM_CHANNELS; ++ch)
+    {
+        uint32_t crsfVal = US_to_CRSF(_channels[ch]);
+        scratch |= crsfVal << bitsInScratch;
+        bitsInScratch += CRSF_BITS_PER_CHANNEL;
+        while (bitsInScratch > 8)
+        {
+            *pbuf++ = scratch;
+            scratch >>= 8;
+            bitsInScratch -= 8;
+        }
+    }
+
+    queuePacket(CRSF_FRAMETYPE_RC_CHANNELS_PACKED, packedChannels, sizeof(packedChannels));
 }
 
 /**

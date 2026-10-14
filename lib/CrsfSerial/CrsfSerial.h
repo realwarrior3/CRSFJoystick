@@ -18,13 +18,19 @@ public:
     void loop();
     void write(uint8_t b);
     void write(const uint8_t *buf, size_t len);
-    void queuePacket(uint8_t addr, uint8_t type, const void *payload, uint8_t len);
+    // Local patch: upstream hardcodes the destination to CRSF_SYNC_BYTE (0xC8).
+    // We keep `addr` optional so frames addressed to the receiver (e.g. the
+    // "bl" reboot command, CRSF_ADDRESS_CRSF_RECEIVER = 0xEC) stay correct.
+    void queuePacket(uint8_t type, const void *payload, uint8_t len, uint8_t addr = CRSF_SYNC_BYTE);
+    void queuePacketChannels();
 
     uint32_t getBaud() const { return _baud; };
     // Return current channel value (1-based) in us
     int getChannel(unsigned int ch) const { return _channels[ch - 1]; }
+    void setChannel(unsigned int ch, unsigned int value_us) { _channels[ch - 1] = value_us; }
     const crsfLinkStatistics_t *getLinkStatistics() const { return &_linkStatistics; }
     const crsf_sensor_gps_t *getGpsSensor() const { return &_gpsSensor; }
+    const crsf_sensor_battery_t *getVbatSensor() const { return &_vbatSensor; }
     bool isLinkUp() const { return _linkIsUp; }
     bool getPassthroughMode() const { return _passthroughBaud != 0; }
     void setPassthroughMode(bool val, uint32_t passthroughBaud = 0);
@@ -38,20 +44,24 @@ public:
     void (*onPacketChannels)();
     void (*onPacketLinkStatistics)(crsfLinkStatistics_t *ls);
     void (*onPacketGps)(crsf_sensor_gps_t *gpsSensor);
+    void (*onPacketVbat)(crsf_sensor_battery_t *vbatSensor);
 
 private:
     HardwareSerial &_port;
     uint8_t _rxBuf[CRSF_MAX_PACKET_SIZE];
     uint8_t _rxBufPos;
     Crc8 _crc;
-    crsfLinkStatistics_t _linkStatistics;
-    crsf_sensor_gps_t _gpsSensor;
     uint32_t _baud;
     uint32_t _lastReceive;
     uint32_t _lastChannelsPacket;
     bool _linkIsUp;
     uint32_t _passthroughBaud;
     int _channels[CRSF_NUM_CHANNELS];
+
+    // Last sensor data
+    crsfLinkStatistics_t _linkStatistics;
+    crsf_sensor_gps_t _gpsSensor;
+    crsf_sensor_battery_t _vbatSensor;
 
     void handleSerialIn();
     void handleByteReceived();
@@ -64,4 +74,5 @@ private:
     void packetChannelsPacked(const crsf_header_t *p);
     void packetLinkStatistics(const crsf_header_t *p);
     void packetGps(const crsf_header_t *p);
+    void packetVbat(const crsf_header_t *p);
 };
