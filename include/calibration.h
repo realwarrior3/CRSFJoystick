@@ -2,12 +2,12 @@
 #define CALIBRATION
 
 // ---------------------------------------------------------------------------
-// Analog axis calibration
+// Калібрування аналогових осей
 //
-// The values below define the raw CRSF channel window (in microseconds) that
-// is stretched to the full -32767..32767 joystick travel.  Typical CRSF
-// channels idle around 1000..2000us but every receiver/transmitter is a little
-// different, so these are intentionally a touch wider than the nominal range.
+// Значення нижче задають "вікно" сирих значень CRSF-каналу (у мікросекундах),
+// яке розтягується на весь хід джойстика -32767..32767. Зазвичай канали CRSF
+// у спокої лежать у діапазоні 1000..2000 мкс, але кожен приймач/пульт трохи
+// відрізняється, тому ці межі навмисно трохи ширші за номінальний діапазон.
 // ---------------------------------------------------------------------------
 #define CHANNEL_1_LOW_EP 989
 #define CHANNEL_1_HIGH_EP 2011
@@ -37,11 +37,12 @@
 #define JOYSTICK_HIGH 32767
 
 // ---------------------------------------------------------------------------
-// Switch position detection windows
+// Вікна визначення положення перемикачів
 //
-// A three position switch reports discrete values around 1000 / 1500 / 2000.
-// Each window is deliberately generous so a slightly off-centre switch still
-// registers.  Two position switches simply never enter the MID window.
+// Трипозиційний перемикач видає дискретні значення близько 1000 / 1500 / 2000.
+// Кожне вікно навмисно зроблене із запасом, щоб трохи зміщений перемикач усе
+// одно спрацьовував. Двопозиційний перемикач просто ніколи не потрапляє у
+// вікно MID.
 // ---------------------------------------------------------------------------
 #define SW_LOW_LO 800
 #define SW_LOW_HI 1250
@@ -50,8 +51,8 @@
 #define SW_HIGH_LO 1750
 #define SW_HIGH_HI 2200
 
-// lower_bound / upper_bound constrain where a button reports HIGH (inclusive).
-// When invert is true the button instead reports HIGH *outside* the window.
+// lower_bound / upper_bound задають межі, у яких кнопка звітує HIGH (включно).
+// Якщо invert = true, кнопка натомість звітує HIGH *поза* цим вікном.
 typedef struct btn_config {
     byte channel;
     byte id;
@@ -61,23 +62,25 @@ typedef struct btn_config {
 } btn_config;
 
 // ---------------------------------------------------------------------------
-// Button map
+// Карта кнопок
 //
-// The USB HID descriptor already exposes 128 buttons (see PicoGamepad.cpp), so
-// the only limit is how many entries you add below - just keep NUM_BUTTONS in
-// sync and make sure every id (0..127) is unique.
+// USB HID-дескриптор уже надає 128 кнопок (див. PicoGamepad.cpp), тому єдине
+// обмеження — скільки записів ви додасте нижче. Просто тримайте NUM_BUTTONS
+// у відповідності та стежте, щоб кожен id (0..127) був унікальним.
 //
-// The default map gives every AUX switch (channels 5-12) three independent
-// buttons, one per physical position, plus optional stick deflection buttons
-// on channels 1-4.  Since one CRSF channel can drive many buttons via windows,
-// the number of usable "binds" is limited only by the 128 button HID ceiling.
+// Типова карта дає кожному AUX-перемикачу (канали 5-12) три окремі кнопки —
+// по одній на фізичне положення, плюс додаткові кнопки на відхилення стіків
+// для каналів 1-4. Оскільки один CRSF-канал може керувати багатьма кнопками
+// через вікна, кількість доступних "привʼязок" обмежена лише стелею у 128
+// кнопок HID.
 //
-// To use fewer buttons simply delete entries and lower NUM_BUTTONS.
+// Щоб використовувати менше кнопок, просто видаліть записи та зменште
+// NUM_BUTTONS.
 // ---------------------------------------------------------------------------
 #define NUM_BUTTONS 32
 
 btn_config btn_map[NUM_BUTTONS] = {
-    // --- AUX 1..8 - LOW position (channels 5-12) ---------------------------
+    // --- AUX 1..8 — положення LOW (канали 5-12) ----------------------------
     {  5,  0, SW_LOW_LO,  SW_LOW_HI,  false },
     {  6,  1, SW_LOW_LO,  SW_LOW_HI,  false },
     {  7,  2, SW_LOW_LO,  SW_LOW_HI,  false },
@@ -87,7 +90,7 @@ btn_config btn_map[NUM_BUTTONS] = {
     { 11,  6, SW_LOW_LO,  SW_LOW_HI,  false },
     { 12,  7, SW_LOW_LO,  SW_LOW_HI,  false },
 
-    // --- AUX 1..8 - MIDDLE position ---------------------------------------
+    // --- AUX 1..8 — середнє положення --------------------------------------
     {  5,  8, SW_MID_LO,  SW_MID_HI,  false },
     {  6,  9, SW_MID_LO,  SW_MID_HI,  false },
     {  7, 10, SW_MID_LO,  SW_MID_HI,  false },
@@ -97,7 +100,7 @@ btn_config btn_map[NUM_BUTTONS] = {
     { 11, 14, SW_MID_LO,  SW_MID_HI,  false },
     { 12, 15, SW_MID_LO,  SW_MID_HI,  false },
 
-    // --- AUX 1..8 - HIGH position -----------------------------------------
+    // --- AUX 1..8 — положення HIGH -----------------------------------------
     {  5, 16, SW_HIGH_LO, SW_HIGH_HI, false },
     {  6, 17, SW_HIGH_LO, SW_HIGH_HI, false },
     {  7, 18, SW_HIGH_LO, SW_HIGH_HI, false },
@@ -107,9 +110,10 @@ btn_config btn_map[NUM_BUTTONS] = {
     { 11, 22, SW_HIGH_LO, SW_HIGH_HI, false },
     { 12, 23, SW_HIGH_LO, SW_HIGH_HI, false },
 
-    // --- Optional: stick deflection as buttons (channels 1-4) --------------
-    // Delete these (and lower NUM_BUTTONS) if your sticks are used purely as
-    // analog axes and you do not want a full deflection to fire a button.
+    // --- Опційно: відхилення стіків як кнопки (канали 1-4) ------------------
+    // Видаліть ці записи (і зменште NUM_BUTTONS), якщо стіки використовуються
+    // суто як аналогові осі і ви не хочете, щоб повне відхилення натискало
+    // кнопку.
     {  1, 24, SW_HIGH_LO, SW_HIGH_HI, false },
     {  2, 25, SW_HIGH_LO, SW_HIGH_HI, false },
     {  3, 26, SW_HIGH_LO, SW_HIGH_HI, false },
@@ -120,21 +124,21 @@ btn_config btn_map[NUM_BUTTONS] = {
     {  4, 31, SW_LOW_LO,  SW_LOW_HI,  false },
 };
 
-// Channel1 - A
-// Channel2 - E
-// Channel3 - T
-// Channel4 - R
-// Channel5 - Aux 1
-// Channel6 - Aux 2
-// Channel7 - Aux 3
-// Channel8 - Aux 4
-// Channel9 - Aux 5
-// Channel10 - Aux 6
-// Channel11 - Aux 7
-// Channel12 - Aux 8
-// Channel13
-// Channel14
-// Channel15 - LQ
-// Channel16 - RSSI
+// Канал 1  - A
+// Канал 2  - E
+// Канал 3  - T
+// Канал 4  - R
+// Канал 5  - Aux 1
+// Канал 6  - Aux 2
+// Канал 7  - Aux 3
+// Канал 8  - Aux 4
+// Канал 9  - Aux 5
+// Канал 10 - Aux 6
+// Канал 11 - Aux 7
+// Канал 12 - Aux 8
+// Канал 13
+// Канал 14
+// Канал 15 - LQ
+// Канал 16 - RSSI
 
 #endif

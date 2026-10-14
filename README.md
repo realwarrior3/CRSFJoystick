@@ -1,123 +1,137 @@
 # CRSFJoystick
 
-Firmware for **RP2040** boards that turns an **ExpressLRS / CRSF / Tracer**
-receiver into a **USB HID gamepad** for simulators.
+Прошивка для плат **RP2040**, яка перетворює приймач **ExpressLRS / CRSF / Tracer**
+на **USB HID-геймпад** для симуляторів.
 
-The board speaks the CRSF wire protocol to the receiver and exposes the incoming
-channels as joystick axes and buttons over native USB. Named *CRSFJoystick* after
-that protocol.
+Плата спілкується з приймачем протоколом CRSF, а вхідні канали віддає як осі та
+кнопки джойстика через нативний USB. Назва *CRSFJoystick* походить саме від цього
+протоколу.
 
-* 8 analog channels → X, Y, Rx, Ry, Z, Rz, Throttle, S0
-* Up to 128 buttons (AUX switches and optional stick deflection)
-* Failsafe: when the link drops, every axis is centered and every button
-  released (re-sent every 100 ms)
-* ExpressLRS is the primary target; TBS Crossfire and TBS Tracer also work
+* 8 аналогових каналів → X, Y, Rx, Ry, Z, Rz, Throttle, S0
+* До 128 кнопок (AUX-перемикачі та, за бажанням, відхилення стіків)
+* Failsafe: при втраті звʼязку всі осі центруються, а кнопки відпускаються
+  (стан повторюється кожні 100 мс)
+* Основний таргет — ExpressLRS; TBS Crossfire і TBS Tracer також працюють
 
-## Supported boards
+## ⚠️ Важливо (прочитайте перед використанням)
 
-Every board is a separate PlatformIO environment (see `platformio.ini`). The
-`BOARD_ID` build flag selects the pin/LED map in `include/board_defs.h`.
+* Це **форк (копія)** проєкту
+  [mikeneiderhauser/CRSFJoystick](https://github.com/mikeneiderhauser/CRSFJoystick).
+* **Усі зміни в цьому репозиторії внесені виключно за допомогою ШІ.**
+* Через це в коді **може бути багато помилок і непередбачених дефектів**.
+* Проєкт надається «як є», **без жодних гарантій** — явних чи неявних.
+* Використовуючи цей проєкт, ви робите це **на власний страх і ризик**. Автори
+  не несуть відповідальності за будь-які збитки, пошкодження обладнання,
+  втрату даних чи інші наслідки.
+* Перед підключенням реальної апаратури перевіряйте схему підключення та
+  полярність живлення самостійно.
 
-| PlatformIO env    | Board                    | BOARD_ID | MCU TX | MCU RX |
-| ----------------- | ------------------------ | -------- | ------ | ------ |
-| `pico`            | Raspberry Pi Pico        | 1        | GP4    | GP5    |
-| `tiny2040`        | Pimoroni Tiny 2040       | 2        | GP4    | GP5    |
-| `waveshare2040zero` | Waveshare RP2040-Zero  | 3        | GP4    | GP5    |
-| `seeedxaio2040`   | Seeed XIAO RP2040        | 4        | GP0    | GP1    |
-| `qtpy2040`        | Adafruit QT Py RP2040    | 5        | GP20   | GP5    |
+## Підтримувані плати
 
-**Wiring diagrams for each board — how to connect the receiver — are in
+Кожна плата — окреме середовище PlatformIO (див. `platformio.ini`). Прапорець
+збірки `BOARD_ID` вибирає відповідну мапу пінів/LED у `include/board_defs.h`.
+
+| Середовище PlatformIO | Плата                    | BOARD_ID | MCU TX | MCU RX |
+| --------------------- | ------------------------ | -------- | ------ | ------ |
+| `pico`                | Raspberry Pi Pico        | 1        | GP4    | GP5    |
+| `tiny2040`            | Pimoroni Tiny 2040       | 2        | GP4    | GP5    |
+| `waveshare2040zero`   | Waveshare RP2040-Zero    | 3        | GP4    | GP5    |
+| `seeedxaio2040`       | Seeed XIAO RP2040        | 4        | GP0    | GP1    |
+| `qtpy2040`            | Adafruit QT Py RP2040    | 5        | GP20   | GP5    |
+
+**Схеми підключення приймача до кожної плати — у
 [`docs/wiring.md`](docs/wiring.md).**
 
-## Install VSCode + PlatformIO
+## Встановлення VSCode + PlatformIO
 
-1. Install Visual Studio Code: <https://code.visualstudio.com/>
-2. In VSCode open the Extensions view (`Ctrl+Shift+X`), search for **PlatformIO
-   IDE** and install it.
-   (Full instructions: <https://platformio.org/install/ide?install=vscode>)
-3. Restart VSCode and open this folder: `File → Open Folder…`
+1. Встановіть Visual Studio Code: <https://code.visualstudio.com/>
+2. У VSCode відкрийте панель розширень (`Ctrl+Shift+X`), знайдіть
+   **PlatformIO IDE** і встановіть його.
+   (Повна інструкція: <https://platformio.org/install/ide?install=vscode>)
+3. Перезапустіть VSCode та відкрийте цю теку: `File → Open Folder…`
 
-On the first build PlatformIO downloads the RP2040 toolchain automatically.
+Під час першої збірки PlatformIO автоматично завантажить тулчейн для RP2040.
 
-## Build and flash
+## Збірка та прошивка
 
-The PlatformIO toolbar is at the bottom of the VSCode window.
+Панель PlatformIO розташована внизу вікна VSCode.
 
-1. **Select the board.** Click the environment name (initially
-   `Default (CRSFJoystick)`) in the toolbar and choose your board
+1. **Виберіть плату.** Клацніть назву середовища (спочатку
+   `Default (CRSFJoystick)`) на панелі та виберіть свою плату
    (`pico`, `tiny2040`, `waveshare2040zero`, `seeedxaio2040`, `qtpy2040`).
-2. **Build.** Click the **✓** (checkmark) button.
-3. **Upload.** Connect the board over USB and click the **→** (arrow) button.
+2. **Збірка.** Натисніть кнопку **✓** (галочка).
+3. **Прошивка.** Підключіть плату по USB і натисніть кнопку **→** (стрілка).
 
-### Alternative upload (BOOTSEL / UF2)
+### Альтернативне прошивання (BOOTSEL / UF2)
 
-This is the standard Raspberry Pi method and needs no tools:
+Це стандартний метод для плат Raspberry Pi, який не потребує додаткових
+інструментів:
 
-1. Hold the **BOOTSEL** button while plugging the board in (or press
-   BOOTSEL + RESET if already powered).
-2. A mass-storage device (for example `RPI-RP2`) appears.
-3. Drag `firmware.uf2` from `.pio/build/<env>/` onto that drive
-   (replace `<env>` with your board's environment name).
-4. The board reboots and enumerates as a gamepad.
+1. Затисніть кнопку **BOOTSEL** і, утримуючи її, підключіть плату до USB
+   (або, якщо плата вже живиться, натисніть BOOTSEL + RESET).
+2. Зʼявиться змінний диск (наприклад `RPI-RP2`).
+3. Перетягніть файл `firmware.uf2` з теки `.pio/build/<env>/` на цей диск
+   (замініть `<env>` на назву середовища вашої плати).
+4. Плата перезавантажиться й зʼявиться як геймпад.
 
-### Drivers (Windows)
+### Драйвери (Windows)
 
-The RP2040 USB driver can be a hit or miss with PlatformIO. If upload cannot
-find the board you may need Zadig:
+USB-драйвер RP2040 інколи погано дружить із PlatformIO. Якщо прошивка не може
+знайти плату, можливо, доведеться замінити драйвер через Zadig:
 <https://github.com/platformio/platform-raspberrypi/issues/2#issuecomment-828586398>
 
-Driver mapping that is known to work on Windows 11:
+Перевірене на Windows 11 зіставлення драйверів:
 
-| Mode        | Interface | Zadig driver          | Device Manager                       |
-| ----------- | --------- | --------------------- | ------------------------------------ |
-| Normal run  | 0         | HidUsb                | Human Interface Devices → HID-compliant game controller |
-| Normal run  | 1         | usbser                | Ports (COM & LPT) → USB Serial Device |
-| RP2 Boot    | 0         | USBSTOR               | Disk Drives → RPI RP2 USB Device      |
-| RP2 Boot    | 1         | WinUSB                | Universal Serial Bus Devices → RP2 Boot |
+| Режим          | Інтерфейс | Драйвер у Zadig | Диспетчер пристроїв                                                        |
+| -------------- | --------- | --------------- | -------------------------------------------------------------------------- |
+| Звичайна робота | 0         | HidUsb          | Human Interface Devices → HID-compliant game controller                     |
+| Звичайна робота | 1         | usbser          | Ports (COM & LPT) → USB Serial Device                                       |
+| RP2 Boot       | 0         | USBSTOR         | Disk Drives → RPI RP2 USB Device                                            |
+| RP2 Boot       | 1         | WinUSB          | Universal Serial Bus Devices → RP2 Boot                                     |
 
-To change a driver: right-click the device → Properties → Update Driver →
-Browse my computer → Let me pick from a list of available drivers.
+Щоб змінити драйвер: клацніть пристрій правою кнопкою → Properties →
+Update Driver → Browse my computer → Let me pick from a list of available drivers.
 
-## After flashing
+## Після прошивання
 
-* Bind the receiver to your radio. The onboard LED shows link status
-  (on = linked, blink = no link).
-* Verify the device in a gamepad tester such as
+* Звʼяжіть приймач зі своїм пультом. Вбудований LED показує стан звʼязку
+  (світиться = є звʼязок, блимає = немає звʼязку).
+* Перевірте пристрій у тестері геймпадів, наприклад
   <https://hardwaretester.com/gamepad>.
 
-## Calibration and mapping
+## Калібрування та призначення
 
-Channel endpoints and the button map live in [`include/calibration.h`](include/calibration.h);
-the comments there explain how to add or remove binds. Per-board pins and LED
-handling are in [`include/board_defs.h`](include/board_defs.h).
+Межі каналів і мапа кнопок задаються у [`include/calibration.h`](include/calibration.h);
+коментарі в цьому файлі пояснюють, як додавати чи прибирати привʼязки. Піни під
+кожну плату та робота з LED — у [`include/board_defs.h`](include/board_defs.h).
 
-## Project layout
+## Структура проєкту
 
 ```
-src/main.cpp        CRSF → USB HID logic
-include/            board_defs.h (pins/LED), calibration.h (axes/buttons)
-lib/CrsfSerial/     CRSF protocol parser
-lib/PicoGamepad/    USB HID gamepad
-lib/crc8/           CRC8 used by CrsfSerial
-docs/wiring.md      receiver wiring for each RP2040 board
-platformio.ini      build environments (one per board)
+src/main.cpp        логіка CRSF → USB HID
+include/            board_defs.h (піни/LED), calibration.h (осі/кнопки)
+lib/CrsfSerial/     парсер протоколу CRSF
+lib/PicoGamepad/    USB HID-геймпад
+lib/crc8/           CRC8, який використовує CrsfSerial
+docs/wiring.md      підключення приймача для кожної плати RP2040
+platformio.ini      середовища збірки (по одному на плату)
 ```
 
-## Flashing the receiver (optional)
+## Прошивання приймача (опційно)
 
-The firmware includes a CRSF passthrough, so a receiver can be updated through
-the joystick using the Betaflight passthrough method:
+Прошивка підтримує CRSF-паскріз, тож приймач можна оновлювати через цей
+джойстик методом Betaflight Passthrough:
 <https://www.expresslrs.org/software/updating/betaflight-passthrough/>
 
-If your receiver is WiFi-enabled it can also be updated over WiFi:
+Якщо ваш приймач підтримує WiFi, його також можна оновити через WiFi:
 <https://www.expresslrs.org/software/updating/wifi-updating/>
 
-## Credits
+## Подяки
 
-* CRSF protocol: CapnBry — <https://github.com/CapnBry/CRServoF>
-* USB gamepad: RealRobots — <https://gitlab.com/realrobots/PicoGamepad>
+* Протокол CRSF: CapnBry — <https://github.com/CapnBry/CRServoF>
+* USB-геймпад: RealRobots — <https://gitlab.com/realrobots/PicoGamepad>
 
-## License
+## Ліцензія
 
-GPLv3 — see [`LICENSE`](LICENSE).
-Originally based on <https://github.com/mikeneiderhauser/CRSFJoystick>.
+GPLv3 — див. [`LICENSE`](LICENSE).
+Оригінальний проєкт: <https://github.com/mikeneiderhauser/CRSFJoystick>.

@@ -7,8 +7,8 @@
 
 // Raspberry Pi Pico
 #if BOARD_ID == 1
-    #define CRSF_TX 4  // physical 6
-    #define CRSF_RX 5  // physical 7
+    #define CRSF_TX 4  // фізичний пін 6
+    #define CRSF_RX 5  // фізичний пін 7
 
     #define LED_TYPE LED_TYPE_SINGLE
     #define LED_PIN 25
@@ -67,7 +67,7 @@
     NeoPixelConnect p(LED_PIN, 1, pio0, 0);
     
     void boardSetup() {
-      // noop
+      // нічого не робимо
     }
 
     void led_off() {
@@ -88,7 +88,7 @@
     #define CRSF_TX 0
     #define CRSF_RX 1
 
-    // 1 NEOPixel - currently unused
+    // 1 NeoPixel — наразі не використовується
     #define LED_TYPE LED_TYPE_NEOPIXEL
     #define LED_NEO_PWR 11
     #define LED_PIN 12
@@ -96,7 +96,7 @@
     #include <NeoPixelConnect.h>
     NeoPixelConnect p(LED_PIN, 1, pio0, 0);
     
-    // 1 Active Low RGB
+    // 1 RGB — активний низький рівень
     //#define LED_ACTIVE_LOW LED_ACTIVE_LOW_TRUE
     //#define LED_TYPE LED_TYPE_RGB
     #define LED_PIN_R 17
@@ -104,10 +104,10 @@
     #define LED_PIN_B 25
 
     void boardSetup() {
-        // Enable neopixel LED
+        // Увімкнути NeoPixel LED
         pinMode(LED_NEO_PWR, OUTPUT);
         digitalWrite(LED_NEO_PWR, HIGH);
-        // Turn off user led
+        // Вимкнути користувацький LED
         pinMode(LED_PIN_R, OUTPUT);
         pinMode(LED_PIN_G, OUTPUT);
         pinMode(LED_PIN_B, OUTPUT);
@@ -134,7 +134,7 @@
     #define CRSF_TX 20
     #define CRSF_RX 5
 
-    // 1 NEOPixel
+    // 1 NeoPixel
     #define LED_TYPE LED_TYPE_NEOPIXEL
     #define LED_NEO_PWR 11
     #define LED_PIN 12

@@ -4,29 +4,29 @@
 
 #include "calibration.h"
 
-// BOARD_ID SELECTION HAPPENS IN PLATFORMIO ENVIRONMENT SELECTION
+// ВИБІР BOARD_ID ВІДБУВАЄТЬСЯ ПРИ ВИБОРІ СЕРЕДОВИЩА PLATFORMIO
 
-// Blink routine variables and state tracking
-#define BLINK_ENABLED                    // comment this line out to disable led blink
-#define BLINK_TIME 60000                 // blink routine window (in ms)
-#define BLINK_DELAY 500                  // delay in between led state change (in ms)
-#define FAILSAFE_RESEND_MS 100           // re-send centered failsafe state while link is down (ms)
+// Змінні та відстеження стану рутини блимання
+#define BLINK_ENABLED                    // закоментуйте цей рядок, щоб вимкнути блимання LED
+#define BLINK_TIME 60000                 // вікно рутини блимання (мс)
+#define BLINK_DELAY 500                  // затримка між змінами стану LED (мс)
+#define FAILSAFE_RESEND_MS 100           // як часто повторно надсилати центральний failsafe-стан, поки немає звʼязку (мс)
 
 static bool serialEcho;
 static char serialInBuff[64];
 static uint8_t serialInBuffLen;
 
-bool led_state = false;                  // track led on/off state
-unsigned long ms_curr = 0;               // current time
-unsigned long ms_last_link_changed = 0;  // last time crsf link changed
-unsigned long ms_last_led_changed = 0;   // last time led changed state in blink routine
-unsigned long ms_last_failsafe_sent = 0; // last time centered failsafe state was sent
+bool led_state = false;                  // поточний стан LED (увімк./вимк.)
+unsigned long ms_curr = 0;               // поточний час
+unsigned long ms_last_link_changed = 0;  // час останньої зміни стану CRSF-звʼязку
+unsigned long ms_last_led_changed = 0;   // час останньої зміни стану LED у рутині блимання
+unsigned long ms_last_failsafe_sent = 0; // час останнього надсилання центрального failsafe-стану
 
 #include "board_defs.h"
 
 UART Serial2(CRSF_TX, CRSF_RX, NC, NC);
 
-CrsfSerial crsf(Serial2, CRSF_BAUDRATE); // pass any HardwareSerial port
+CrsfSerial crsf(Serial2, CRSF_BAUDRATE); // передайте будь-який HardwareSerial-порт
 int channel_data = 0;
 int map_data = 0;
 
@@ -35,10 +35,10 @@ PicoGamepad gamepad;
 btn_config *c;
 
 /***
- * @brief Drive the gamepad to a safe state: every analog axis centered and
- *        every button released. This is used when the CRSF link is not up so
- *        that losing the radio cannot leave the sticks/buttons latched in
- *        their last position (which would cause runaway controls in a sim).
+ * @brief Привести геймпад у безпечний стан: усі аналогові осі центруються,
+ *        усі кнопки відпускаються. Використовується, коли CRSF-звʼязок
+ *        відсутній, щоб втрата радіозвʼязку не залишила стіки/кнопки в
+ *        останньому положенні (це спричинило б некероване керування в симі).
  ***/
 void setFailsafeState()
 {
@@ -62,14 +62,14 @@ void setFailsafeState()
 }
 
 /***
- * This callback is called whenever new channel values are available.
- * Use crsf.getChannel(x) to get us channel values (1-16).
+ * Цей колбек викликається щоразу, коли зʼявляються нові значення каналів.
+ * Використовуйте crsf.getChannel(x), щоб отримати значення каналів (1-16).
  ***/
 void packetChannels()
 {
-    // Manually expanding instead of looping so I can change params as needed
+    // Розписуємо вручну, а не циклом, щоб за потреби міняти параметри
 
-    // X - Channel 1 - A
+    // X — Канал 1 — A
     channel_data = crsf.getChannel(1);
     map_data = map(channel_data, \
       CHANNEL_1_LOW_EP,          \
@@ -78,7 +78,7 @@ void packetChannels()
       JOYSTICK_HIGH);
     gamepad.SetX(map_data);
 
-    // Y - Channel 2 - E
+    // Y — Канал 2 — E
     channel_data = crsf.getChannel(2);
     map_data = map(channel_data, \
       CHANNEL_2_LOW_EP,          \
@@ -87,7 +87,7 @@ void packetChannels()
       JOYSTICK_HIGH);
     gamepad.SetY(map_data);
 
-    // Rx - Channel 3 - T
+    // Rx — Канал 3 — T
     channel_data = crsf.getChannel(3);
     map_data = map(channel_data, \
       CHANNEL_3_LOW_EP,          \
@@ -96,7 +96,7 @@ void packetChannels()
       JOYSTICK_HIGH);
     gamepad.SetRx(map_data);
 
-    // Ry - Channel 4 - R
+    // Ry — Канал 4 — R
     channel_data = crsf.getChannel(4);
     map_data = map(channel_data, \
       CHANNEL_4_LOW_EP,          \
@@ -105,7 +105,7 @@ void packetChannels()
       JOYSTICK_HIGH);
     gamepad.SetRy(map_data);
 
-    // Z - Channel 5
+    // Z — Канал 5
     channel_data = crsf.getChannel(5);
     map_data = map(channel_data, \
       CHANNEL_5_LOW_EP,          \
@@ -114,7 +114,7 @@ void packetChannels()
       JOYSTICK_HIGH);
     gamepad.SetZ(map_data);
 
-    // Rz - Channel 6
+    // Rz — Канал 6
     channel_data = crsf.getChannel(6);
     map_data = map(channel_data, \
       CHANNEL_6_LOW_EP,          \
@@ -123,7 +123,7 @@ void packetChannels()
       JOYSTICK_HIGH);
     gamepad.SetRz(map_data);
 
-    // Rx - Channel 7
+    // Rx — Канал 7
     channel_data = crsf.getChannel(7);
     map_data = map(channel_data, \
       CHANNEL_7_LOW_EP,          \
@@ -132,7 +132,7 @@ void packetChannels()
       JOYSTICK_HIGH);
     gamepad.SetThrottle(map_data);
 
-    // Rx - Channel 8
+    // Rx — Канал 8
     channel_data = crsf.getChannel(8);
     map_data = map(channel_data, \
       CHANNEL_8_LOW_EP,          \
@@ -141,22 +141,21 @@ void packetChannels()
       JOYSTICK_HIGH);
     gamepad.SetS0(map_data);
 
-    // Ry - unused
+    // Ry — не використовується
     // gamepad.SetRy(map_data);
-    // Rz - unused
+    // Rz — не використовується
     // gamepad.SetRz(map_data);
-    // S0 - unused
+    // S0 — не використовується
     // gamepad.SetS0(map_data);
 
-    // Multi-position switches can be set up in calibrations.h
-    // The button will report HIGH when the channel is withing
-    // a lower / upper bound (inclusive) constraint.
-    // Default is HIGH (1510, 2011) else LOW
+    // Багатопозиційні перемикачі налаштовуються у calibrations.h
+    // Кнопка звітує HIGH, коли канал перебуває в межах нижньої/верхньої межі
+    // (включно). Типово HIGH (1510, 2011), інакше LOW.
 
     for(uint8_t i = 0; i < NUM_BUTTONS; i++){
       c = &btn_map[i];
       channel_data = crsf.getChannel(c->channel);
-      // bounds check inclusive
+      // перевірка меж включно
       if(channel_data >= c->lower_bound && channel_data <= c->upper_bound) {
         map_data = c->invert ? LOW : HIGH;
       }
@@ -171,9 +170,9 @@ void packetChannels()
       Serial.print(" m: "); Serial.println(map_data);
       #endif
     }
-    // TODO what to do with Channel 13,14,15,16 (NA,NA,LQ,RSSI)
+    // TODO що робити з каналами 13,14,15,16 (NA,NA,LQ,RSSI)
 
-    // Set hat direction, 4 hats available. direction is clockwise 0=N 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW 8=CENTER
+    // Задати напрямок хатів, доступно 4 хати. напрямок за годинниковою стрілкою, 0=N 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW 8=CENTER
     // gamepad.SetHat(0, 8);
 
     gamepad.send_update();
@@ -193,7 +192,7 @@ void crsfLinkDown() {
   led_state = false;
   led_off();
 
-  // Radio lost - center all controls so the host cannot keep the last input
+  // Радіозвʼязок втрачено — центруємо всі органи керування, щоб хост не зберіг останній ввід
   setFailsafeState();
 }
 
@@ -201,8 +200,8 @@ static void passthroughBegin(uint32_t baud)
 {
     if (baud != crsf.getBaud())
     {
-        // Force a reboot command since we want to send the reboot
-        // at 420000 then switch to what the user wanted
+        // Надсилаємо команду перезавантаження, бо хочемо передати
+        // reboot на 420000, а потім перемкнутися на потрібну користувачу швидкість
         const uint8_t rebootpayload[] = { 'b', 'l' };
         crsf.queuePacket(CRSF_ADDRESS_CRSF_RECEIVER, CRSF_FRAMETYPE_COMMAND, &rebootpayload, sizeof(rebootpayload));
     }
@@ -217,12 +216,12 @@ static void crsfOobData(uint8_t b)
 }
 
 /***
- * @brief Processes a text command like we're some sort of CLI or something
- * @return true if CrsfSerial was placed into passthrough mode, false otherwise
+ * @brief Обробляє текстову команду, наче це якийсь CLI
+ * @return true, якщо CrsfSerial було переведено в режим паскрізу, інакше false
 */
 static bool handleSerialCommand(char *cmd)
 {
-    // Fake a CRSF RX on UART6
+    // Імітуємо CRSF-приймач на UART6
     bool prompt = true;
     if (strcmp(cmd, "#") == 0)
     {
@@ -278,12 +277,12 @@ static void checkSerialInNormal()
                 serialInBuffLen = 0;
 
                 bool goToPassthrough = handleSerialCommand(serialInBuff);
-                // If need to go to passthrough, get outta here before we dequeue any bytes
+                // Якщо потрібно перейти в паскріз — виходимо, поки не вибрали жодного байта з черги
                 if (goToPassthrough)
                     return;
             }
         }
-        // Betaflight CLI is entered just by hitting #, no return needed
+        // У Betaflight CLI входиш просто натиснувши #, без Enter
         else if (c == '#')
         {
             serialInBuffLen = 0;
@@ -292,7 +291,7 @@ static void checkSerialInNormal()
         else
         {
             serialInBuff[serialInBuffLen++] = c;
-            // if the buffer fills without getting a newline, just reset
+            // якщо буфер заповнився без символу нового рядка — просто скидаємо його
             if (serialInBuffLen >= sizeof(serialInBuff))
                 serialInBuffLen = 0;
         }
@@ -314,18 +313,18 @@ static void checkSerialInPassthrough()
         LED = !LED;
         gotData = true;
     }
-    // If longer than X seconds since last data, switch out of passthrough
+    // Якщо минуло більше X секунд без даних — виходимо з режиму паскрізу
     if (gotData || !lastData)
         lastData = millis();
 
-    // Turn off LED 1s after last data
+    // Вимкнути LED через 1 с після останніх даних
     else if (LED && (millis() - lastData > 1000))
     {
         LED = false;
         led_off();
     }
 
-    // Short blink LED after timeout
+    // Коротке блимання LED після тайм-ауту
     else if (millis() - lastData > 5000)
     {
         lastData = 0;
@@ -347,20 +346,20 @@ static void checkSerialIn()
 #ifdef BLINK_ENABLED
 void led_loop() {
   ms_curr = millis();
-  // link is down
+  // звʼязок відсутній
   if(!crsf.isLinkUp()) {
-    // within the blink routine window (BLINK_TIME)
+    // у межах вікна рутини блимання (BLINK_TIME)
     if(ms_curr < (ms_last_link_changed + BLINK_TIME)) {
-      // handle led toggle delay
+      // обробка затримки перемикання LED
       if(ms_curr > (ms_last_led_changed + BLINK_DELAY)) {
         ms_last_led_changed = ms_curr;
         led_state ? led_on() : led_off();
-        led_state = !led_state;  // toggle led state
+        led_state = !led_state;  // перемкнути стан LED
       }
     }
     else
     {
-      // ensure the led is off if the blink routine expired and link is down
+      // якщо вікно блимання минуло, а звʼязку досі немає — вимкнути LED
       led_off();
     }
   }
@@ -375,7 +374,7 @@ void setup()
 
     gamepad.send_update();
 
-    // Attach the channels callback
+    // Привʼязати колбек каналів
     crsf.onPacketChannels = &packetChannels;
     crsf.onLinkUp = &crsfLinkUp;
     crsf.onLinkDown = &crsfLinkDown;
@@ -386,12 +385,12 @@ void setup()
 
 void loop()
 {
-    // Must call CrsfSerial.loop() in loop() to process data
+    // Для обробки даних обовʼязково викликати CrsfSerial.loop() у loop()
     crsf.loop();
     checkSerialIn();
 
-    // While the link is down keep re-sending the centered failsafe state so the
-    // host cannot latch stale inputs even if it resets its view of the device.
+    // Поки звʼязку немає, повторно надсилаємо центральний failsafe-стан, щоб
+    // хост не зберіг застарілий ввід навіть після скидання свого стану пристрою.
     if (!crsf.isLinkUp() && (millis() - ms_last_failsafe_sent > FAILSAFE_RESEND_MS))
     {
         setFailsafeState();
