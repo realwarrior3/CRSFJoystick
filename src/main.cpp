@@ -60,6 +60,17 @@ void setFailsafeState()
     gamepad.send_update();
 }
 
+// Arduino map() НЕ обмежує результат: якщо сире значення каналу виходить за
+// межі вікна (LOW_EP..HIGH_EP), воно екстраполюється далі. Для 16-бітної осі
+// HID це означає, що значення може перевищити 32767 і «загорнутися» у
+// відʼємне — тоді стік на краю миттєво стрибає на протилежний бік. Тому
+// обмежуємо результат діапазоном осі.
+static int mapAxis(int us, int lowEp, int highEp)
+{
+    return constrain(map(us, lowEp, highEp, JOYSTICK_LOW, JOYSTICK_HIGH),
+                     JOYSTICK_LOW, JOYSTICK_HIGH);
+}
+
 /***
  * Цей колбек викликається щоразу, коли зʼявляються нові значення каналів.
  * Використовуйте crsf.getChannel(x), щоб отримати значення каналів (1-16).
@@ -70,74 +81,42 @@ void packetChannels()
 
     // X — Канал 1 — A
     channel_data = crsf.getChannel(1);
-    map_data = map(channel_data, \
-      CHANNEL_1_LOW_EP,          \
-      CHANNEL_1_HIGH_EP,         \
-      JOYSTICK_LOW,              \
-      JOYSTICK_HIGH);
+    map_data = mapAxis(channel_data, CHANNEL_1_LOW_EP, CHANNEL_1_HIGH_EP);
     gamepad.SetX(map_data);
 
     // Y — Канал 2 — E
     channel_data = crsf.getChannel(2);
-    map_data = map(channel_data, \
-      CHANNEL_2_LOW_EP,          \
-      CHANNEL_2_HIGH_EP,         \
-      JOYSTICK_LOW,              \
-      JOYSTICK_HIGH);
+    map_data = mapAxis(channel_data, CHANNEL_2_LOW_EP, CHANNEL_2_HIGH_EP);
     gamepad.SetY(map_data);
 
     // Rx — Канал 3 — T
     channel_data = crsf.getChannel(3);
-    map_data = map(channel_data, \
-      CHANNEL_3_LOW_EP,          \
-      CHANNEL_3_HIGH_EP,         \
-      JOYSTICK_LOW,              \
-      JOYSTICK_HIGH);
+    map_data = mapAxis(channel_data, CHANNEL_3_LOW_EP, CHANNEL_3_HIGH_EP);
     gamepad.SetRx(map_data);
 
     // Ry — Канал 4 — R
     channel_data = crsf.getChannel(4);
-    map_data = map(channel_data, \
-      CHANNEL_4_LOW_EP,          \
-      CHANNEL_4_HIGH_EP,         \
-      JOYSTICK_LOW,              \
-      JOYSTICK_HIGH);
+    map_data = mapAxis(channel_data, CHANNEL_4_LOW_EP, CHANNEL_4_HIGH_EP);
     gamepad.SetRy(map_data);
 
     // Z — Канал 5
     channel_data = crsf.getChannel(5);
-    map_data = map(channel_data, \
-      CHANNEL_5_LOW_EP,          \
-      CHANNEL_5_HIGH_EP,         \
-      JOYSTICK_LOW,              \
-      JOYSTICK_HIGH);
+    map_data = mapAxis(channel_data, CHANNEL_5_LOW_EP, CHANNEL_5_HIGH_EP);
     gamepad.SetZ(map_data);
 
     // Rz — Канал 6
     channel_data = crsf.getChannel(6);
-    map_data = map(channel_data, \
-      CHANNEL_6_LOW_EP,          \
-      CHANNEL_6_HIGH_EP,         \
-      JOYSTICK_LOW,              \
-      JOYSTICK_HIGH);
+    map_data = mapAxis(channel_data, CHANNEL_6_LOW_EP, CHANNEL_6_HIGH_EP);
     gamepad.SetRz(map_data);
 
     // Dial — Канал 7
     channel_data = crsf.getChannel(7);
-    map_data = map(channel_data, \
-      CHANNEL_7_LOW_EP,          \
-      CHANNEL_7_HIGH_EP,         \
-      JOYSTICK_LOW,              \
-      JOYSTICK_HIGH);
+    map_data = mapAxis(channel_data, CHANNEL_7_LOW_EP, CHANNEL_7_HIGH_EP);
     gamepad.SetDial(map_data);
 
     // Slider — Канал 8
     channel_data = crsf.getChannel(8);
-    map_data = map(channel_data, \
-      CHANNEL_8_LOW_EP,          \
-      CHANNEL_8_HIGH_EP,         \
-      JOYSTICK_LOW,              \
-      JOYSTICK_HIGH);
+    map_data = mapAxis(channel_data, CHANNEL_8_LOW_EP, CHANNEL_8_HIGH_EP);
     gamepad.SetSlider(map_data);
 
     // Решта осей (Wheel, Vx..Vno) не використовується: HID-дескриптор їх
