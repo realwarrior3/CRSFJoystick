@@ -34,6 +34,43 @@ PicoGamepad gamepad;
 
 btn_config *c;
 
+// ---------------------------------------------------------------------------
+// Надсилання HID-звіту лише за потреби
+//
+// USB HID interrupt-ендпоінт має bInterval = 1 мс, тож надсилати звіт частіше
+// немає сенсу. Якщо стан не змінився — надсилання нічого не дає, тож
+// пропускаємо його: менше USB-трафіку й прокидань CPU. Для failsafe-стану
+// надсилання форсується (force = true), щоб гарантовано повторювати його,
+// поки немає звʼязку.
+// ---------------------------------------------------------------------------
+static uint8_t hid_last_sent[PicoGamepad::INPUT_BYTES];
+static bool hid_has_sent = false;
+static unsigned long ms_last_hid_send = 0;
+
+static void sendGamepadReport(bool force)
+{
+    const uint8_t *cur = gamepad.getInputs();
+
+    if (!force)
+    {
+        // стан не змінився — надсилати нічого
+        if (hid_has_sent && memcmp(cur, hid_last_sent, PicoGamepad::INPUT_BYTES) == 0)
+            return;
+
+        // не частіше одного звіту на мілісекунду (bInterval ендпоінта = 1)
+        if (hid_has_sent && (millis() - ms_last_hid_send) < 1)
+            return;
+    }
+
+    memcpy(hid_last_sent, cur, PicoGamepad::INPUT_BYTES);
+    hid_has_sent = true;
+    ms_last_hid_send = millis();
+
+    // якщо USB-передавання не вдалося — дозволяємо повторну спробу наступного разу
+    if (!gamepad.send_update())
+        hid_has_sent = false;
+}
+
 /***
  * @brief Привести геймпад у безпечний стан: усі аналогові осі центруються,
  *        усі кнопки відпускаються. Використовується, коли CRSF-звʼязок
@@ -57,7 +94,7 @@ void setFailsafeState()
     for (uint8_t h = 0; h < 4; h++)
         gamepad.SetHat(h, HAT_DIR_C);
 
-    gamepad.send_update();
+    sendGamepadReport(true);
 }
 
 // Arduino map() НЕ обмежує результат: якщо сире значення каналу виходить за
@@ -149,7 +186,7 @@ void packetChannels()
     // Задати напрямок хатів, доступно 4 хати. напрямок за годинниковою стрілкою, 0=N 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW 8=CENTER
     // gamepad.SetHat(0, 8);
 
-    gamepad.send_update();
+    sendGamepadReport(false);
 }
 
 void crsfLinkUp() {
@@ -346,7 +383,7 @@ void setup()
     boardSetup();
     crsfLinkDown();
 
-    gamepad.send_update();
+    sendGamepadReport(true);
 
     // Привʼязати колбек каналів
     crsf.onPacketChannels = &packetChannels;

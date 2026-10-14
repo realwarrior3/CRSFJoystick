@@ -187,6 +187,15 @@ namespace arduino
         void SetHat(uint8_t hatIdx, uint8_t dir);
 
         bool send_update();
+
+        // Кількість байтів стану (без провідного Report ID у звіті):
+        // 16 кнопок + 16 осей + 2 байти хатів = 50 (див. inputArray нижче).
+        static const size_t INPUT_BYTES = 50;
+
+        // Доступ лише для читання до поточного стану — щоб викликач міг
+        // визначити, чи стан змінився, перш ніж надсилати звіт.
+        const uint8_t *getInputs() const { return inputArray; }
+
         /*
     * To define the report descriptor. Warning: this method has to store the length of the report descriptor in reportLength.
     *
