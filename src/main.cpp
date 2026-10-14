@@ -89,25 +89,25 @@ void packetChannels()
     map_data = mapAxis(channel_data, CHANNEL_2_LOW_EP, CHANNEL_2_HIGH_EP);
     gamepad.SetY(map_data);
 
-    // Rx — Канал 3 — T
+    // Z — Канал 3 — T (Throttle)
     channel_data = crsf.getChannel(3);
     map_data = mapAxis(channel_data, CHANNEL_3_LOW_EP, CHANNEL_3_HIGH_EP);
-    gamepad.SetRx(map_data);
-
-    // Ry — Канал 4 — R
-    channel_data = crsf.getChannel(4);
-    map_data = mapAxis(channel_data, CHANNEL_4_LOW_EP, CHANNEL_4_HIGH_EP);
-    gamepad.SetRy(map_data);
-
-    // Z — Канал 5
-    channel_data = crsf.getChannel(5);
-    map_data = mapAxis(channel_data, CHANNEL_5_LOW_EP, CHANNEL_5_HIGH_EP);
     gamepad.SetZ(map_data);
 
-    // Rz — Канал 6
+    // Rz — Канал 4 — R (Rudder / Yaw)
+    channel_data = crsf.getChannel(4);
+    map_data = mapAxis(channel_data, CHANNEL_4_LOW_EP, CHANNEL_4_HIGH_EP);
+    gamepad.SetRz(map_data);
+
+    // Rx — Канал 5 — AUX1
+    channel_data = crsf.getChannel(5);
+    map_data = mapAxis(channel_data, CHANNEL_5_LOW_EP, CHANNEL_5_HIGH_EP);
+    gamepad.SetRx(map_data);
+
+    // Ry — Канал 6 — AUX2
     channel_data = crsf.getChannel(6);
     map_data = mapAxis(channel_data, CHANNEL_6_LOW_EP, CHANNEL_6_HIGH_EP);
-    gamepad.SetRz(map_data);
+    gamepad.SetRy(map_data);
 
     // Dial — Канал 7
     channel_data = crsf.getChannel(7);
