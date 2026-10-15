@@ -230,7 +230,7 @@ static void crsfOobData(uint8_t b)
  * @brief Обробляє текстову команду, наче це якийсь CLI
  * @return true, якщо CrsfSerial було переведено в режим паскрізу, інакше false
 */
-static bool handleSerialCommand(char *cmd)
+static bool handleSerialCommand(const char *cmd)
 {
     // Імітуємо CRSF-приймач на UART6
     bool prompt = true;
