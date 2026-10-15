@@ -34,6 +34,38 @@
 #define CHANNEL_8_LOW_EP 989
 #define CHANNEL_8_HIGH_EP 2011
 
+#define CHANNEL_9_LOW_EP 989
+#define CHANNEL_9_HIGH_EP 2011
+
+#define CHANNEL_10_LOW_EP 989
+#define CHANNEL_10_HIGH_EP 2011
+
+#define CHANNEL_11_LOW_EP 989
+#define CHANNEL_11_HIGH_EP 2011
+
+#define CHANNEL_12_LOW_EP 989
+#define CHANNEL_12_HIGH_EP 2011
+
+#define CHANNEL_13_LOW_EP 989
+#define CHANNEL_13_HIGH_EP 2011
+
+#define CHANNEL_14_LOW_EP 989
+#define CHANNEL_14_HIGH_EP 2011
+
+#define CHANNEL_15_LOW_EP 989
+#define CHANNEL_15_HIGH_EP 2011
+
+#define CHANNEL_16_LOW_EP 989
+#define CHANNEL_16_HIGH_EP 2011
+
+// ---------------------------------------------------------------------------
+// Опт-ін: віддавати службові канали 15/16 (у ELRS — LQ % і RSSI %) осями
+// Vbrz / Vno. За замовчуванням ВИМКНЕНО: це показники якості зв'язку, а не
+// органи керування, і вони не повинні впливати на гру. Розкоментуйте рядок
+// нижче, щоб увімкнути (LQ/RSSI — це 0..100%, за потреби підстроїте межі).
+// ---------------------------------------------------------------------------
+// #define MAP_SIGNAL_AXES 1
+
 #define JOYSTICK_LOW (-32767)
 #define JOYSTICK_HIGH 32767
 

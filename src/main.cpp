@@ -116,11 +116,11 @@ void packetChannels()
     int channel_data;
     int map_data;
 
-    // ВАЖЛИВО: порядок осей у USB-HID визначається HID usage-кодом, а не порядком
-    // оголошення в дескрипторі (Chrome/Edge: індекс осі = usage - 0x30). Тому
-    // канали 1–8 призначені строго по зростанню usage: X, Y, Z, Rx, Ry, Rz,
-    // Slider, Dial — так індекси осей у тестерах збігаються з номерами каналів
-    // (інакше Rz «стрибає» на індекс 5).
+    // ВАЖЛИВО: індекс осі в USB-HID визначається HID usage-кодом, а не порядком
+    // оголошення в дескрипторі (Chrome/Edge: індекс = usage - 0x30). Тому канали
+    // призначаються по зростанню usage: X, Y, Z, Rx, Ry, Rz, Slider, Dial, далі
+    // Wheel, Vx..Vbry — щоб індекси не «стрибали» (напр., Rz інакше має індекс 5).
+    // Для нестандартних usage-ів (Wheel, Vx..Vno) конкретний індекс обирає браузер.
 
     // X — Канал 1 — A
     channel_data = crsf.getChannel(1);
@@ -162,8 +162,48 @@ void packetChannels()
     map_data = mapAxis(channel_data, CHANNEL_8_LOW_EP, CHANNEL_8_HIGH_EP);
     gamepad.SetDial(map_data);
 
-    // Решта осей (Wheel, Vx..Vno) не використовується: HID-дескриптор їх
-    // експортує, але ми залишаємо їх у нулі (див. PicoGamepad).
+    // Wheel — Канал 9 — AUX5
+    channel_data = crsf.getChannel(9);
+    map_data = mapAxis(channel_data, CHANNEL_9_LOW_EP, CHANNEL_9_HIGH_EP);
+    gamepad.SetWheel(map_data);
+
+    // Vx — Канал 10 — AUX6
+    channel_data = crsf.getChannel(10);
+    map_data = mapAxis(channel_data, CHANNEL_10_LOW_EP, CHANNEL_10_HIGH_EP);
+    gamepad.SetVx(map_data);
+
+    // Vy — Канал 11 — AUX7
+    channel_data = crsf.getChannel(11);
+    map_data = mapAxis(channel_data, CHANNEL_11_LOW_EP, CHANNEL_11_HIGH_EP);
+    gamepad.SetVy(map_data);
+
+    // Vz — Канал 12 — AUX8
+    channel_data = crsf.getChannel(12);
+    map_data = mapAxis(channel_data, CHANNEL_12_LOW_EP, CHANNEL_12_HIGH_EP);
+    gamepad.SetVz(map_data);
+
+    // Vbrx — Канал 13
+    channel_data = crsf.getChannel(13);
+    map_data = mapAxis(channel_data, CHANNEL_13_LOW_EP, CHANNEL_13_HIGH_EP);
+    gamepad.SetVbrx(map_data);
+
+    // Vbry — Канал 14
+    channel_data = crsf.getChannel(14);
+    map_data = mapAxis(channel_data, CHANNEL_14_LOW_EP, CHANNEL_14_HIGH_EP);
+    gamepad.SetVbry(map_data);
+
+    // Vbrz / Vno (осі 14/15) — Канали 15/16 (у ELRS — LQ %, RSSI %). Поки НЕ
+    // задіяні: це службові показники зв'язку, а не органи керування. Щоб
+    // віддавати їх осями, увімкніть MAP_SIGNAL_AXES (див. calibration.h).
+#ifdef MAP_SIGNAL_AXES
+    channel_data = crsf.getChannel(15);
+    map_data = mapAxis(channel_data, CHANNEL_15_LOW_EP, CHANNEL_15_HIGH_EP);
+    gamepad.SetVbrz(map_data);
+
+    channel_data = crsf.getChannel(16);
+    map_data = mapAxis(channel_data, CHANNEL_16_LOW_EP, CHANNEL_16_HIGH_EP);
+    gamepad.SetVno(map_data);
+#endif
 
     // Багатопозиційні перемикачі налаштовуються у calibration.h
     // Кнопка звітує HIGH, коли канал перебуває в межах нижньої/верхньої межі
