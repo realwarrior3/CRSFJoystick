@@ -52,6 +52,8 @@
 #define SW_HIGH_LO 1750
 #define SW_HIGH_HI 2200
 
+#define SW_HYSTERESIS 20  // гістерезис для кнопок (мкс)
+
 // lower_bound / upper_bound задають межі, у яких кнопка звітує HIGH (включно).
 // Якщо invert = true, кнопка натомість звітує HIGH *поза* цим вікном.
 typedef struct btn_config {

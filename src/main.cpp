@@ -30,6 +30,8 @@ CrsfSerial crsf(Serial2, CRSF_BAUDRATE); // передайте будь-який
 
 PicoGamepad gamepad;
 
+static bool btn_last_state[NUM_BUTTONS];
+
 // ---------------------------------------------------------------------------
 // Надсилання HID-звіту лише за потреби
 //
@@ -164,19 +166,30 @@ void packetChannels()
     for(uint8_t i = 0; i < NUM_BUTTONS; i++){
       const btn_config *c = &btn_map[i];
       channel_data = crsf.getChannel(c->channel);
-      // перевірка меж включно
-      if(channel_data >= c->lower_bound && channel_data <= c->upper_bound) {
-        map_data = c->invert ? LOW : HIGH;
+      bool btn_state_low = (channel_data < (c->lower_bound - SW_HYSTERESIS));
+      bool btn_state_high = (channel_data > (c->upper_bound + SW_HYSTERESIS));
+      bool in_window = (!btn_state_low && !btn_state_high) &&
+                       (channel_data >= c->lower_bound) &&
+                       (channel_data <= c->upper_bound);
+      bool new_state = btn_last_state[i];
+      if (in_window) {
+        new_state = !c->invert;
+      } else {
+        if (btn_state_high || btn_state_low) {
+          new_state = c->invert;
+        } else {
+          new_state = btn_last_state[i];
+        }
       }
-      else {
-        map_data = c->invert ? HIGH : LOW;
+      if (new_state != btn_last_state[i]) {
+        btn_last_state[i] = new_state;
       }
-      gamepad.SetButton(c->id, map_data);
+      gamepad.SetButton(c->id, btn_last_state[i] ? HIGH : LOW);
 
       #ifdef BTN_PRINT
       Serial.print("b: "); Serial.print(c->id);
       Serial.print(" c: "); Serial.print(channel_data);
-      Serial.print(" m: "); Serial.println(map_data);
+      Serial.print(" m: "); Serial.println(btn_last_state[i] ? HIGH : LOW);
       #endif
     }
     // TODO що робити з каналами 13,14,15,16 (NA,NA,LQ,RSSI)
