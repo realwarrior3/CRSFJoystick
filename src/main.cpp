@@ -16,23 +16,19 @@ static bool serialEcho;
 static char serialInBuff[64];
 static uint8_t serialInBuffLen;
 
-bool led_state = false;                  // поточний стан LED (увімк./вимк.)
-unsigned long ms_curr = 0;               // поточний час
-unsigned long ms_last_link_changed = 0;  // час останньої зміни стану CRSF-звʼязку
-unsigned long ms_last_led_changed = 0;   // час останньої зміни стану LED у рутині блимання
-unsigned long ms_last_failsafe_sent = 0; // час останнього надсилання центрального failsafe-стану
+static bool led_state = false;             // поточний стан LED (увімк./вимк.)
+static unsigned long ms_curr = 0;          // поточний час
+static unsigned long ms_last_link_changed = 0;  // час останньої зміни стану CRSF-звʼязку
+static unsigned long ms_last_led_changed = 0;   // час останньої зміни стану LED у рутині блимання
+static unsigned long ms_last_failsafe_sent = 0; // час останнього надсилання центрального failsafe-стану
 
 #include "board_defs.h"
 
 UART Serial2(CRSF_TX, CRSF_RX, NC, NC);
 
 CrsfSerial crsf(Serial2, CRSF_BAUDRATE); // передайте будь-який HardwareSerial-порт
-int channel_data = 0;
-int map_data = 0;
 
 PicoGamepad gamepad;
-
-btn_config *c;
 
 // ---------------------------------------------------------------------------
 // Надсилання HID-звіту лише за потреби
@@ -115,6 +111,8 @@ static int mapAxis(int us, int lowEp, int highEp)
 void packetChannels()
 {
     // Розписуємо вручну, а не циклом, щоб за потреби міняти параметри
+    int channel_data;
+    int map_data;
 
     // X — Канал 1 — A
     channel_data = crsf.getChannel(1);
@@ -159,12 +157,12 @@ void packetChannels()
     // Решта осей (Wheel, Vx..Vno) не використовується: HID-дескриптор їх
     // експортує, але ми залишаємо їх у нулі (див. PicoGamepad).
 
-    // Багатопозиційні перемикачі налаштовуються у calibrations.h
+    // Багатопозиційні перемикачі налаштовуються у calibration.h
     // Кнопка звітує HIGH, коли канал перебуває в межах нижньої/верхньої межі
     // (включно). Типово HIGH (1510, 2011), інакше LOW.
 
     for(uint8_t i = 0; i < NUM_BUTTONS; i++){
-      c = &btn_map[i];
+      const btn_config *c = &btn_map[i];
       channel_data = crsf.getChannel(c->channel);
       // перевірка меж включно
       if(channel_data >= c->lower_bound && channel_data <= c->upper_bound) {

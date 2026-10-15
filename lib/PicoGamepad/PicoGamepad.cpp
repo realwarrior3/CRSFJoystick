@@ -20,16 +20,10 @@
 #include "PicoGamepad.h"
 #include "usb_phy_api.h"
 
-#define REPORT_ID_KEYBOARD 1
-#define REPORT_ID_VOLUME 3
-
 using namespace arduino;
-
-//uint8_t inputArray[35];
 
 PicoGamepad::PicoGamepad(bool connect, uint16_t vendor_id, uint16_t product_id, uint16_t product_release) : USBHID(get_usb_phy(), 0, 0, vendor_id, product_id, product_release)
 {
-    //_lock_status = 0;
     // Fix vs upstream: zero every input so unused axes/buttons read neutral
     // instead of random RAM contents.
     memset(inputArray, 0, sizeof(inputArray));
@@ -41,7 +35,6 @@ PicoGamepad::PicoGamepad(bool connect, uint16_t vendor_id, uint16_t product_id, 
 
 PicoGamepad::PicoGamepad(USBPhy *phy, uint16_t vendor_id, uint16_t product_id, uint16_t product_release) : USBHID(phy, 0, 0, vendor_id, product_id, product_release)
 {
-    //_lock_status = 0;
     // Fix vs upstream: zero every input so unused axes/buttons read neutral
     // instead of random RAM contents.
     memset(inputArray, 0, sizeof(inputArray));
@@ -54,10 +47,6 @@ PicoGamepad::PicoGamepad(USBPhy *phy, uint16_t vendor_id, uint16_t product_id, u
 
 PicoGamepad::~PicoGamepad()
 {
-    // for (int i = 0; i < 35; i++)
-    // {
-    //     inputArray[i] = 0;
-    // }
     for (int i = 0; i < 4; i++)
     {
         SetHat(i, HAT_DIR_C);
@@ -138,11 +127,11 @@ bool PicoGamepad::randomizeInputs()
 
     HID_REPORT report;
     report.data[0] = 0x01;
-    for (int i = 1; i < 51; i++)
+    for (size_t i = 1; i <= INPUT_BYTES; i++)
     {
         report.data[i] = random();
     }
-    report.length = 51;
+    report.length = INPUT_BYTES + 1;
 
     if (!send(&report))
     {
@@ -275,6 +264,11 @@ void PicoGamepad::SetVno(uint16_t val)
 
 void PicoGamepad::SetHat(uint8_t hatIdx, uint8_t dir)
 {
+    if (hatIdx > 3 || dir > HAT_DIR_C)
+    {
+        return;
+    }
+
     uint8_t hatDir[9][4] = {
         {0, 0, 0, 0},
         {0, 0, 0, 1},
@@ -320,12 +314,12 @@ bool PicoGamepad::send_update()
 
     HID_REPORT report;
     report.data[0] = 0x01;
-    for (int i = 1; i < 51; i++)
+    for (size_t i = 1; i <= INPUT_BYTES; i++)
     {
         report.data[i] = inputArray[i - 1];
     }
 
-    report.length = 51;
+    report.length = INPUT_BYTES + 1;
 
     if (!send(&report))
     {
@@ -343,12 +337,12 @@ bool PicoGamepad::send_inputs(uint8_t *values)
 
     HID_REPORT report;
     report.data[0] = 0x01;
-    for (int i = 1; i < 51; i++)
+    for (size_t i = 1; i <= INPUT_BYTES; i++)
     {
         report.data[i] = values[i - 1];
     }
 
-    report.length = 51;
+    report.length = INPUT_BYTES + 1;
 
     if (!send(&report))
     {
@@ -388,8 +382,8 @@ const uint8_t *PicoGamepad::configuration_desc(uint8_t index)
         0x00,                        // bAlternateSetting
         0x02,                        // bNumEndpoints
         HID_CLASS,                   // bInterfaceClass
-        HID_SUBCLASS_BOOT,           // bInterfaceSubClass
-        HID_PROTOCOL_KEYBOARD,       // bInterfaceProtocol
+        HID_SUBCLASS_NONE,           // bInterfaceSubClass
+        HID_PROTOCOL_NONE,           // bInterfaceProtocol
         0x00,                        // iInterface
 
         HID_DESCRIPTOR_LENGTH,                // bLength

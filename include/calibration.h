@@ -80,7 +80,7 @@ typedef struct btn_config {
 // ---------------------------------------------------------------------------
 #define NUM_BUTTONS 24
 
-btn_config btn_map[NUM_BUTTONS] = {
+static const btn_config btn_map[NUM_BUTTONS] = {
     // --- AUX 1..8 — положення LOW (канали 5-12) ----------------------------
     {  5,  0, SW_LOW_LO,  SW_LOW_HI,  false },
     {  6,  1, SW_LOW_LO,  SW_LOW_HI,  false },
