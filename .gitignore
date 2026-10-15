@@ -3,3 +3,7 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+# Python-артефакти (напр., якщо extra_scripts колись почнуть імпортувати)
+__pycache__/
+*.py[cod]
