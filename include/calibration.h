@@ -112,38 +112,58 @@ typedef struct btn_config {
 // Щоб використовувати менше кнопок, просто видаліть записи та зменште
 // NUM_BUTTONS.
 // ---------------------------------------------------------------------------
-#define NUM_BUTTONS 24
+#define NUM_BUTTONS 42
 
 static const btn_config btn_map[NUM_BUTTONS] = {
-    // --- AUX 1..8 — положення LOW (канали 5-12) ----------------------------
-    {  5,  0, SW_LOW_LO,  SW_LOW_HI,  false },
-    {  6,  1, SW_LOW_LO,  SW_LOW_HI,  false },
-    {  7,  2, SW_LOW_LO,  SW_LOW_HI,  false },
-    {  8,  3, SW_LOW_LO,  SW_LOW_HI,  false },
-    {  9,  4, SW_LOW_LO,  SW_LOW_HI,  false },
-    { 10,  5, SW_LOW_LO,  SW_LOW_HI,  false },
-    { 11,  6, SW_LOW_LO,  SW_LOW_HI,  false },
-    { 12,  7, SW_LOW_LO,  SW_LOW_HI,  false },
+    // Канал 5 — AUX1: трипозиційний
+    {  5,  0, SW_LOW_LO,   SW_LOW_HI,   false },
+    {  5,  1, SW_MID_LO,   SW_MID_HI,   false },
+    {  5,  2, SW_HIGH_LO,  SW_HIGH_HI,  false },
 
-    // --- AUX 1..8 — середнє положення --------------------------------------
-    {  5,  8, SW_MID_LO,  SW_MID_HI,  false },
-    {  6,  9, SW_MID_LO,  SW_MID_HI,  false },
-    {  7, 10, SW_MID_LO,  SW_MID_HI,  false },
-    {  8, 11, SW_MID_LO,  SW_MID_HI,  false },
-    {  9, 12, SW_MID_LO,  SW_MID_HI,  false },
-    { 10, 13, SW_MID_LO,  SW_MID_HI,  false },
-    { 11, 14, SW_MID_LO,  SW_MID_HI,  false },
-    { 12, 15, SW_MID_LO,  SW_MID_HI,  false },
+    // Канал 6 — AUX2: трипозиційний
+    {  6,  3, SW_LOW_LO,   SW_LOW_HI,   false },
+    {  6,  4, SW_MID_LO,   SW_MID_HI,   false },
+    {  6,  5, SW_HIGH_LO,  SW_HIGH_HI,  false },
 
-    // --- AUX 1..8 — положення HIGH -----------------------------------------
-    {  5, 16, SW_HIGH_LO, SW_HIGH_HI, false },
-    {  6, 17, SW_HIGH_LO, SW_HIGH_HI, false },
-    {  7, 18, SW_HIGH_LO, SW_HIGH_HI, false },
-    {  8, 19, SW_HIGH_LO, SW_HIGH_HI, false },
-    {  9, 20, SW_HIGH_LO, SW_HIGH_HI, false },
-    { 10, 21, SW_HIGH_LO, SW_HIGH_HI, false },
-    { 11, 22, SW_HIGH_LO, SW_HIGH_HI, false },
-    { 12, 23, SW_HIGH_LO, SW_HIGH_HI, false },
+    // Канал 7 — AUX3: трипозиційний
+    {  7,  6, SW_LOW_LO,   SW_LOW_HI,   false },
+    {  7,  7, SW_MID_LO,   SW_MID_HI,   false },
+    {  7,  8, SW_HIGH_LO,  SW_HIGH_HI,  false },
+
+    // Канал 8 — AUX4: трипозиційний
+    {  8,  9, SW_LOW_LO,   SW_LOW_HI,   false },
+    {  8, 10, SW_MID_LO,   SW_MID_HI,   false },
+    {  8, 11, SW_HIGH_LO,  SW_HIGH_HI,  false },
+
+    // Канал 9 — AUX5: трипозиційний
+    {  9, 12, SW_LOW_LO,   SW_LOW_HI,   false },
+    {  9, 13, SW_MID_LO,   SW_MID_HI,   false },
+    {  9, 14, SW_HIGH_LO,  SW_HIGH_HI,  false },
+
+    // Канал 10 — AUX6: трипозиційний
+    { 10, 15, SW_LOW_LO,   SW_LOW_HI,   false },
+    { 10, 16, SW_MID_LO,   SW_MID_HI,   false },
+    { 10, 17, SW_HIGH_LO,  SW_HIGH_HI,  false },
+
+    // Канал 11 — AUX7: трипозиційний
+    { 11, 18, SW_LOW_LO,   SW_LOW_HI,   false },
+    { 11, 19, SW_MID_LO,   SW_MID_HI,   false },
+    { 11, 20, SW_HIGH_LO,  SW_HIGH_HI,  false },
+
+    // Канал 12 — AUX8: трипозиційний
+    { 12, 21, SW_LOW_LO,   SW_LOW_HI,   false },
+    { 12, 22, SW_MID_LO,   SW_MID_HI,   false },
+    { 12, 23, SW_HIGH_LO,  SW_HIGH_HI,  false },
+
+    // Канал 13 — AUX9: можна залишити на кнопки за потреби (трипозиційний/двопозиційний)
+    { 13, 24, SW_LOW_LO,   SW_LOW_HI,   false },
+    { 13, 25, SW_MID_LO,   SW_MID_HI,   false },
+    { 13, 26, SW_HIGH_LO,  SW_HIGH_HI,  false },
+
+    // Канал 14 — AUX10: трипозиційний (має вісь Axis 13)
+    { 14, 27, SW_LOW_LO,   SW_LOW_HI,   false },
+    { 14, 28, SW_MID_LO,   SW_MID_HI,   false },
+    { 14, 29, SW_HIGH_LO,  SW_HIGH_HI,  false },
 };
 
 // Канал 1  - A
@@ -158,8 +178,8 @@ static const btn_config btn_map[NUM_BUTTONS] = {
 // Канал 10 - Aux 6
 // Канал 11 - Aux 7
 // Канал 12 - Aux 8
-// Канал 13
-// Канал 14
+// Канал 13 - Aux 9 (також вісь Axis 12)
+// Канал 14 - Aux 10 (також вісь Axis 13)
 // Канал 15 - LQ
 // Канал 16 - RSSI
 

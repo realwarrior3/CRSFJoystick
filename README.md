@@ -193,16 +193,16 @@ Axis9..Axis13), тому індекси осей у тестерах збіга�
 | 2     | E — Elevator (Pitch)        | Y        | —                             |
 | 3     | T — Throttle                | Z        | —                             |
 | 4     | R — Rudder (Yaw)            | Rx       | —                             |
-| 5     | AUX1 (в ELRS — Arm)         | Ry       | 0 / 8 / 16                    |
-| 6     | AUX2                        | Rz       | 1 / 9 / 17                    |
-| 7     | AUX3                        | Slider   | 2 / 10 / 18                   |
-| 8     | AUX4                        | Dial     | 3 / 11 / 19                   |
-| 9     | AUX5                        | Wheel    | 4 / 12 / 20                   |
-| 10    | AUX6                        | Axis 9   | 5 / 13 / 21                   |
-| 11    | AUX7                        | Axis 10  | 6 / 14 / 22                   |
-| 12    | AUX8                        | Axis 11  | 7 / 15 / 23                   |
-| 13    | AUX9                        | Axis 12  | —                             |
-| 14    | AUX10                       | Axis 13  | —                             |
+| 5     | AUX1 (в ELRS — Arm)         | Ry       | 0 / 1 / 2                     |
+| 6     | AUX2                        | Rz       | 3 / 4 / 5                     |
+| 7     | AUX3                        | Slider   | 6 / 7 / 8                     |
+| 8     | AUX4                        | Dial     | 9 / 10 / 11                   |
+| 9     | AUX5                        | Wheel    | 12 / 13 / 14                  |
+| 10    | AUX6                        | Axis 9   | 15 / 16 / 17                  |
+| 11    | AUX7                        | Axis 10  | 18 / 19 / 20                  |
+| 12    | AUX8                        | Axis 11  | 21 / 22 / 23                  |
+| 13    | AUX9                        | Axis 12  | 24 / 25 / 26                  |
+| 14    | AUX10                       | Axis 13  | 27 / 28 / 29                  |
 | 15    | AUX11 (у ELRS — LQ %)       | Axis 14 ¹| —                             |
 | 16    | AUX12 (у ELRS — RSSI %)     | Axis 15 ¹| —                             |
 
