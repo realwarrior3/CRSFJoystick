@@ -28,6 +28,10 @@ public:
     // Return current channel value (1-based) in us
     int getChannel(unsigned int ch) const { return _channels[ch - 1]; }
     void setChannel(unsigned int ch, unsigned int value_us) { _channels[ch - 1] = value_us; }
+    // Size (in bytes after sync) of the last frame processed. A packed RC frame
+    // must be 24 (type + 22 payload bytes for 16x11bit + CRC); anything else
+    // means the receiver sends fewer channels than the unpacker expects.
+    uint8_t getFrameSize() const { return _rxBuf[1]; }
     const crsfLinkStatistics_t *getLinkStatistics() const { return &_linkStatistics; }
     const crsf_sensor_gps_t *getGpsSensor() const { return &_gpsSensor; }
     const crsf_sensor_battery_t *getVbatSensor() const { return &_vbatSensor; }

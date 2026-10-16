@@ -17,6 +17,15 @@
 // Корисно, щоб зʼясувати, чи однакові значення каналів приходять з радіо.
 //#define BTN_PRINT
 
+// Розкоментуйте для діагностики каналів 5/13/14 у Serial Monitor. Друкується
+// лише при ЗМІНІ сирих значень (µs) + розмір кадру CRSF:
+//   fs=24 → повний 16-канальний кадр (type + 22 байти + CRC) — норма.
+// Якщо у друку ch14 рівний ch5 — проблема в даних від радіо/ELRS (див. Switch
+// Config: у Hybrid/Wide канал 13 не передається, а канал 14 = ARM-копія CH5).
+// Якщо друк показує незалежні значення, а тестер реагує однаково — копати
+// хост/дескриптор.
+//#define CH_PRINT
+
 static bool serialEcho;
 static char serialInBuff[64];
 static uint8_t serialInBuffLen;
@@ -242,6 +251,24 @@ void packetChannels()
       #endif
     }
     // TODO що робити з каналами 13,14,15,16 (NA,NA,LQ,RSSI)
+
+    #ifdef CH_PRINT
+    // Друк лише при зміні — щоб не заливати порт при кожному пакеті (100+ разів/с)
+    static int prev_ch5 = -1, prev_ch13 = -1, prev_ch14 = -1;
+    int cur_ch5 = crsf.getChannel(5);
+    int cur_ch13 = crsf.getChannel(13);
+    int cur_ch14 = crsf.getChannel(14);
+    if (cur_ch5 != prev_ch5 || cur_ch13 != prev_ch13 || cur_ch14 != prev_ch14)
+    {
+        prev_ch5 = cur_ch5;
+        prev_ch13 = cur_ch13;
+        prev_ch14 = cur_ch14;
+        Serial.print("CH fs="); Serial.print(crsf.getFrameSize());
+        Serial.print(" ch5="); Serial.print(cur_ch5);
+        Serial.print(" ch13="); Serial.print(cur_ch13);
+        Serial.print(" ch14="); Serial.println(cur_ch14);
+    }
+    #endif
 
     sendGamepadReport(false);
 }
