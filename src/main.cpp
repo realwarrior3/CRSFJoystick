@@ -99,6 +99,16 @@ void setFailsafeState()
     gamepad.SetRz(0);
     gamepad.SetDial(0);
     gamepad.SetSlider(0);
+    gamepad.SetWheel(0);
+    gamepad.SetAxis9(0);
+    gamepad.SetAxis10(0);
+    gamepad.SetAxis11(0);
+    gamepad.SetAxis12(0);
+    gamepad.SetAxis13(0);
+#ifdef MAP_SIGNAL_AXES
+    gamepad.SetAxis14(0);
+    gamepad.SetAxis15(0);
+#endif
 
     for (uint8_t i = 0; i < NUM_BUTTONS; i++)
         gamepad.SetButton(btn_map[i].id, LOW);
@@ -204,10 +214,10 @@ void packetChannels()
     map_data = mapAxis(channel_data, CHANNEL_14_LOW_EP, CHANNEL_14_HIGH_EP);
     gamepad.SetAxis13(map_data);
 
-    // Вісь 14 / Вісь 15 — Канали 15/16. У Hybrid/Wide ELRS вони несуть
-    // LQ % / RSSI % (службові показники звʼязку), у режимі Full Res 16ch —
-    // звичайні канали. Поки НЕ задіяні: за потреби увімкніть MAP_SIGNAL_AXES
-    // (див. calibration.h).
+    // Вісь 14 / Вісь 15 — Канали 15/16 — AUX11/AUX12. Задіяні за замовчуванням
+    // (разом із кнопками 30–35); вимикаються макросом MAP_SIGNAL_AXES. У
+    // Hybrid/Wide ELRS ці слоти несуть LQ % / RSSI % — тоді макрос варто
+    // закоментувати (див. calibration.h).
 #ifdef MAP_SIGNAL_AXES
     channel_data = crsf.getChannel(15);
     map_data = mapAxis(channel_data, CHANNEL_15_LOW_EP, CHANNEL_15_HIGH_EP);
@@ -254,19 +264,26 @@ void packetChannels()
 
     #ifdef CH_PRINT
     // Друк лише при зміні — щоб не заливати порт при кожному пакеті (100+ разів/с)
-    static int prev_ch5 = -1, prev_ch13 = -1, prev_ch14 = -1;
+    static int prev_ch5 = -1, prev_ch13 = -1, prev_ch14 = -1, prev_ch15 = -1, prev_ch16 = -1;
     int cur_ch5 = crsf.getChannel(5);
     int cur_ch13 = crsf.getChannel(13);
     int cur_ch14 = crsf.getChannel(14);
-    if (cur_ch5 != prev_ch5 || cur_ch13 != prev_ch13 || cur_ch14 != prev_ch14)
+    int cur_ch15 = crsf.getChannel(15);
+    int cur_ch16 = crsf.getChannel(16);
+    if (cur_ch5 != prev_ch5 || cur_ch13 != prev_ch13 || cur_ch14 != prev_ch14 ||
+        cur_ch15 != prev_ch15 || cur_ch16 != prev_ch16)
     {
         prev_ch5 = cur_ch5;
         prev_ch13 = cur_ch13;
         prev_ch14 = cur_ch14;
+        prev_ch15 = cur_ch15;
+        prev_ch16 = cur_ch16;
         Serial.print("CH fs="); Serial.print(crsf.getFrameSize());
         Serial.print(" ch5="); Serial.print(cur_ch5);
         Serial.print(" ch13="); Serial.print(cur_ch13);
-        Serial.print(" ch14="); Serial.println(cur_ch14);
+        Serial.print(" ch14="); Serial.print(cur_ch14);
+        Serial.print(" ch15="); Serial.print(cur_ch15);
+        Serial.print(" ch16="); Serial.println(cur_ch16);
     }
     #endif
 
