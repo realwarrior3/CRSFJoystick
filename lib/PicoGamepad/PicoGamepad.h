@@ -65,38 +65,27 @@
 // EXTENDED ANALOG CONTROLS
 #define WHEEL_AXIS_LSB 32
 #define WHEEL_AXIS_MSB 33
-#define Vx_AXIS_LSB 34
-#define Vx_AXIS_MSB 35
-#define Vy_AXIS_LSB 36
-#define Vy_AXIS_MSB 37
-#define Vz_AXIS_LSB 38
-#define Vz_AXIS_MSB 39
 
-#define Vbrx_AXIS_LSB 40
-#define Vbrx_AXIS_MSB 41
-#define Vbry_AXIS_LSB 42
-#define Vbry_AXIS_MSB 43
-#define Vbrz_AXIS_LSB 44
-#define Vbrz_AXIS_MSB 45
-#define Vno_AXIS_LSB 46
-#define Vno_AXIS_MSB 47
-
-
-// Fix vs upstream: 16 axes occupy bytes 16..47, so the two hat bytes are 48/49.
-// Upstream had 50/51 here, which pushed the hats outside the transmitted report
-// and made SetHat() write past the end of inputArray[].
-#define HAT0_1 48 // Hats are 4 bit direction (0-9), 2 hats per byte
-#define HAT2_3 49
-
-#define HAT_DIR_N 0
-#define HAT_DIR_NE 1
-#define HAT_DIR_E 2
-#define HAT_DIR_SE 3
-#define HAT_DIR_S 4
-#define HAT_DIR_SW 5
-#define HAT_DIR_W 6
-#define HAT_DIR_NW 7
-#define HAT_DIR_C 8
+// Axes 9-15: HID usages 0x39..0x3F (Generic Desktop). Usages must stay inside
+// the 0x30..0x3F window, otherwise Chromium falls back to assigning free slots
+// and the higher axes jump between indices. Inside the window the browser uses
+// the fixed rule: axis index = usage - 0x30, so axes 9-15 always land on
+// indices 9-15. (0x39 is nominally "Hat switch", 0x3A..0x3F are reserved -
+// hats are not used by this fork, see report_desc().)
+#define AXIS9_LSB 34
+#define AXIS9_MSB 35
+#define AXIS10_LSB 36
+#define AXIS10_MSB 37
+#define AXIS11_LSB 38
+#define AXIS11_MSB 39
+#define AXIS12_LSB 40
+#define AXIS12_MSB 41
+#define AXIS13_LSB 42
+#define AXIS13_MSB 43
+#define AXIS14_LSB 44
+#define AXIS14_MSB 45
+#define AXIS15_LSB 46
+#define AXIS15_MSB 47
 
 namespace arduino
 {
@@ -175,22 +164,19 @@ namespace arduino
         void SetSlider(uint16_t val);
         void SetDial(uint16_t val);
         void SetWheel(uint16_t val);
-        void SetVx(uint16_t val);
-        void SetVy(uint16_t val);
-        void SetVz(uint16_t val);
-        void SetVbrx(uint16_t val);
-        void SetVbry(uint16_t val);
-        void SetVbrz(uint16_t val);
-        void SetVno(uint16_t val);
-
-        // 4 Hats available 0-3, direction is clockwise 0=N 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW 8=CENTER
-        void SetHat(uint8_t hatIdx, uint8_t dir);
+        void SetAxis9(uint16_t val);
+        void SetAxis10(uint16_t val);
+        void SetAxis11(uint16_t val);
+        void SetAxis12(uint16_t val);
+        void SetAxis13(uint16_t val);
+        void SetAxis14(uint16_t val);
+        void SetAxis15(uint16_t val);
 
         bool send_update();
 
         // Кількість байтів стану (без провідного Report ID у звіті):
-        // 16 кнопок + 16 осей + 2 байти хатів = 50 (див. inputArray нижче).
-        static const size_t INPUT_BYTES = 50;
+        // 16 кнопок + 16 осей = 48 (див. inputArray нижче).
+        static const size_t INPUT_BYTES = 48;
 
         // Доступ лише для читання до поточного стану — щоб викликач міг
         // визначити, чи стан змінився, перш ніж надсилати звіт.
@@ -212,8 +198,8 @@ namespace arduino
         virtual const uint8_t *configuration_desc(uint8_t index);
 
     private:
-        // 16 buttons (16 B) + 16 axes (32 B) + 4 hats (2 B) = 50 bytes
-        uint8_t inputArray[50];
+        // 16 buttons (16 B) + 16 axes (32 B) = 48 bytes
+        uint8_t inputArray[48];
 
         uint8_t _configuration_descriptor[41];
         PlatformMutex _mutex;

@@ -27,10 +27,6 @@ PicoGamepad::PicoGamepad(bool connect, uint16_t vendor_id, uint16_t product_id, 
     // Fix vs upstream: zero every input so unused axes/buttons read neutral
     // instead of random RAM contents.
     memset(inputArray, 0, sizeof(inputArray));
-    for (int i = 0; i < 4; i++)
-    {
-        SetHat(i, HAT_DIR_C);
-    }
 }
 
 PicoGamepad::PicoGamepad(USBPhy *phy, uint16_t vendor_id, uint16_t product_id, uint16_t product_release) : USBHID(phy, 0, 0, vendor_id, product_id, product_release)
@@ -38,19 +34,11 @@ PicoGamepad::PicoGamepad(USBPhy *phy, uint16_t vendor_id, uint16_t product_id, u
     // Fix vs upstream: zero every input so unused axes/buttons read neutral
     // instead of random RAM contents.
     memset(inputArray, 0, sizeof(inputArray));
-    for (int i = 0; i < 4; i++)
-    {
-        SetHat(i, HAT_DIR_C);
-    }
     // User or child responsible for calling connect or init
 }
 
 PicoGamepad::~PicoGamepad()
 {
-    for (int i = 0; i < 4; i++)
-    {
-        SetHat(i, HAT_DIR_C);
-    }
 }
 
 const uint8_t *PicoGamepad::report_desc()
@@ -83,37 +71,25 @@ const uint8_t *PicoGamepad::report_desc()
         0x09, 0x35,         // USAGE (Rz)
         0x09, 0x36,         // USAGE (Slider)
         0x09, 0x37,         // USAGE (Dial)
-        // Next 8 axes (Extended analog controls)
-        0x09, 0x38,         // USAGE (Wheel)
-        0x09, 0x40,         // USAGE (Vx - Velocity X)  // upstream had 0x39 (= Hat switch) - fixed
-        0x09, 0x41,         // USAGE (Vy - Velocity Y)
-        0x09, 0x42,         // USAGE (Vz - Velocity Z)
-        0x09, 0x43,         // USAGE (Vbrx - Angular Velocity X)
-        0x09, 0x44,         // USAGE (Vbry - Angular Velocity Y)
-        0x09, 0x45,         // USAGE (Vbrz - Angular Velocity Z)
-        0x09, 0x46,         // USAGE (Vno - Velocity Norm)
+        // Next 8 axes (Extended analog controls). Usages 0x39..0x3F keep every
+        // axis inside the 0x30..0x3F window, so Chromium uses the fixed rule
+        // axis index = usage - 0x30 and axes never jump between slots.
+        // (0x39 is nominally "Hat switch", 0x3A..0x3F are reserved; the browser
+        // treats them as plain Generic Desktop usages. Hats are unused here.)
+        0x09, 0x38,         // USAGE (Wheel - axis 8)
+        0x09, 0x39,         // USAGE (axis 9)
+        0x09, 0x3A,         // USAGE (axis 10)
+        0x09, 0x3B,         // USAGE (axis 11)
+        0x09, 0x3C,         // USAGE (axis 12)
+        0x09, 0x3D,         // USAGE (axis 13)
+        0x09, 0x3E,         // USAGE (axis 14)
+        0x09, 0x3F,         // USAGE (axis 15)
 
         0x16, 0x01, 0x80,   // LOGICAL_MINIMUM (-32767)
         0x26, 0xFF, 0x7F,   // LOGICAL_MAXIMUM (32767)
         0x75, 0x10,         // REPORT_SIZE (16)
         0x95, 0x10,         // REPORT_COUNT (16)  // 16 axes!
         0x81, 0x02,         // INPUT (Data,Var,Abs)
-
-        // HAT SWITCHES (4-way digital, 4 switches)
-        0x09, 0x39,         // USAGE (Hat switch)
-        0x15, 0x00,         // LOGICAL_MINIMUM (0)
-        0x25, 0x07,         // LOGICAL_MAXIMUM (7)
-        0x35, 0x00,         // PHYSICAL_MINIMUM (0)
-        0x46, 0x38, 0x01,   // PHYSICAL_MAXIMUM (315)
-        0x65, 0x14,         // UNIT (Eng Rot:Angular Pos)
-        0x75, 0x04,         // REPORT_SIZE (4)
-        0x95, 0x01,         // REPORT_COUNT (1)
-        0x81, 0x02,         // INPUT (Data,Var,Abs)
-
-        // Repeat hat switch 3 more times (total 4)
-        0x09, 0x39, 0x81, 0x02,  // Hat switch 2
-        0x09, 0x39, 0x81, 0x02,  // Hat switch 3
-        0x09, 0x39, 0x81, 0x02,  // Hat switch 4
 
         0xC0                // END_COLLECTION
     };
@@ -220,92 +196,46 @@ void PicoGamepad::SetWheel(uint16_t val)
     inputArray[WHEEL_AXIS_MSB] = MSB(val);
 }
 
-void PicoGamepad::SetVx(uint16_t val)
+void PicoGamepad::SetAxis9(uint16_t val)
 {
-    inputArray[Vx_AXIS_LSB] = LSB(val);
-    inputArray[Vx_AXIS_MSB] = MSB(val);
+    inputArray[AXIS9_LSB] = LSB(val);
+    inputArray[AXIS9_MSB] = MSB(val);
 }
 
-void PicoGamepad::SetVy(uint16_t val)
+void PicoGamepad::SetAxis10(uint16_t val)
 {
-    inputArray[Vy_AXIS_LSB] = LSB(val);
-    inputArray[Vy_AXIS_MSB] = MSB(val);
+    inputArray[AXIS10_LSB] = LSB(val);
+    inputArray[AXIS10_MSB] = MSB(val);
 }
 
-void PicoGamepad::SetVz(uint16_t val)
+void PicoGamepad::SetAxis11(uint16_t val)
 {
-    inputArray[Vz_AXIS_LSB] = LSB(val);
-    inputArray[Vz_AXIS_MSB] = MSB(val);
+    inputArray[AXIS11_LSB] = LSB(val);
+    inputArray[AXIS11_MSB] = MSB(val);
 }
 
-void PicoGamepad::SetVbrx(uint16_t val)
+void PicoGamepad::SetAxis12(uint16_t val)
 {
-    inputArray[Vbrx_AXIS_LSB] = LSB(val);
-    inputArray[Vbrx_AXIS_MSB] = MSB(val);
+    inputArray[AXIS12_LSB] = LSB(val);
+    inputArray[AXIS12_MSB] = MSB(val);
 }
 
-void PicoGamepad::SetVbry(uint16_t val)
+void PicoGamepad::SetAxis13(uint16_t val)
 {
-    inputArray[Vbry_AXIS_LSB] = LSB(val);
-    inputArray[Vbry_AXIS_MSB] = MSB(val);
+    inputArray[AXIS13_LSB] = LSB(val);
+    inputArray[AXIS13_MSB] = MSB(val);
 }
 
-void PicoGamepad::SetVbrz(uint16_t val)
+void PicoGamepad::SetAxis14(uint16_t val)
 {
-    inputArray[Vbrz_AXIS_LSB] = LSB(val);
-    inputArray[Vbrz_AXIS_MSB] = MSB(val);
+    inputArray[AXIS14_LSB] = LSB(val);
+    inputArray[AXIS14_MSB] = MSB(val);
 }
 
-void PicoGamepad::SetVno(uint16_t val)
+void PicoGamepad::SetAxis15(uint16_t val)
 {
-    inputArray[Vno_AXIS_LSB] = LSB(val);
-    inputArray[Vno_AXIS_MSB] = MSB(val);
-}
-
-void PicoGamepad::SetHat(uint8_t hatIdx, uint8_t dir)
-{
-    if (hatIdx > 3 || dir > HAT_DIR_C)
-    {
-        return;
-    }
-
-    uint8_t hatDir[9][4] = {
-        {0, 0, 0, 0},
-        {0, 0, 0, 1},
-        {0, 0, 1, 0},
-        {0, 0, 1, 1},
-        {0, 1, 0, 0},
-        {0, 1, 0, 1},
-        {0, 1, 1, 0},
-        {0, 1, 1, 1},
-        {1, 0, 0, 0}};
-    switch (hatIdx)
-    {
-    case 0:
-        for (int i = 0; i < 4; i++)
-        {
-            bitWrite(inputArray[HAT0_1], 3 - i, hatDir[dir][i]);
-        }
-        break;
-    case 1:
-        for (int i = 0; i < 4; i++)
-        {
-            bitWrite(inputArray[HAT0_1], 7 - i, hatDir[dir][i]);
-        }
-        break;
-    case 2:
-        for (int i = 0; i < 4; i++)
-        {
-            bitWrite(inputArray[HAT2_3], 3 - i, hatDir[dir][i]);
-        }
-        break;
-    case 3:
-        for (int i = 0; i < 4; i++)
-        {
-            bitWrite(inputArray[HAT2_3], 7 - i, hatDir[dir][i]);
-        }
-        break;
-    }
+    inputArray[AXIS15_LSB] = LSB(val);
+    inputArray[AXIS15_MSB] = MSB(val);
 }
 
 bool PicoGamepad::send_update()

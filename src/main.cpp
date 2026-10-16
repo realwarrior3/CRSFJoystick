@@ -89,9 +89,6 @@ void setFailsafeState()
     for (uint8_t i = 0; i < NUM_BUTTONS; i++)
         gamepad.SetButton(btn_map[i].id, LOW);
 
-    for (uint8_t h = 0; h < 4; h++)
-        gamepad.SetHat(h, HAT_DIR_C);
-
     sendGamepadReport(true);
 }
 
@@ -117,10 +114,11 @@ void packetChannels()
     int map_data;
 
     // ВАЖЛИВО: індекс осі в USB-HID визначається HID usage-кодом, а не порядком
-    // оголошення в дескрипторі (Chrome/Edge: індекс = usage - 0x30). Тому канали
-    // призначаються по зростанню usage: X, Y, Z, Rx, Ry, Rz, Slider, Dial, далі
-    // Wheel, Vx..Vbry — щоб індекси не «стрибали» (напр., Rz інакше має індекс 5).
-    // Для нестандартних usage-ів (Wheel, Vx..Vno) конкретний індекс обирає браузер.
+    // оголошення в дескрипторі. Chrome/Edge використовують правило
+    // індекс = usage - 0x30, але воно діє лише поки usage лежить у вікні
+    // 0x30..0x3F. Тому всі 16 осей оголошені usage-ами 0x30..0x3F і лягають на
+    // фіксовані індекси 0..15: канали 1–9 → осі 0–8, канали 10–16 → осі 9–15
+    // (X=roll, Y=pitch, Z=throttle, Rx=yaw).
 
     // X — Канал 1 — A
     channel_data = crsf.getChannel(1);
@@ -167,42 +165,42 @@ void packetChannels()
     map_data = mapAxis(channel_data, CHANNEL_9_LOW_EP, CHANNEL_9_HIGH_EP);
     gamepad.SetWheel(map_data);
 
-    // Vx — Канал 10 — AUX6
+    // Вісь 9 — Канал 10 — AUX6
     channel_data = crsf.getChannel(10);
     map_data = mapAxis(channel_data, CHANNEL_10_LOW_EP, CHANNEL_10_HIGH_EP);
-    gamepad.SetVx(map_data);
+    gamepad.SetAxis9(map_data);
 
-    // Vy — Канал 11 — AUX7
+    // Вісь 10 — Канал 11 — AUX7
     channel_data = crsf.getChannel(11);
     map_data = mapAxis(channel_data, CHANNEL_11_LOW_EP, CHANNEL_11_HIGH_EP);
-    gamepad.SetVy(map_data);
+    gamepad.SetAxis10(map_data);
 
-    // Vz — Канал 12 — AUX8
+    // Вісь 11 — Канал 12 — AUX8
     channel_data = crsf.getChannel(12);
     map_data = mapAxis(channel_data, CHANNEL_12_LOW_EP, CHANNEL_12_HIGH_EP);
-    gamepad.SetVz(map_data);
+    gamepad.SetAxis11(map_data);
 
-    // Vbrx — Канал 13
+    // Вісь 12 — Канал 13
     channel_data = crsf.getChannel(13);
     map_data = mapAxis(channel_data, CHANNEL_13_LOW_EP, CHANNEL_13_HIGH_EP);
-    gamepad.SetVbrx(map_data);
+    gamepad.SetAxis12(map_data);
 
-    // Vbry — Канал 14
+    // Вісь 13 — Канал 14
     channel_data = crsf.getChannel(14);
     map_data = mapAxis(channel_data, CHANNEL_14_LOW_EP, CHANNEL_14_HIGH_EP);
-    gamepad.SetVbry(map_data);
+    gamepad.SetAxis13(map_data);
 
-    // Vbrz / Vno (осі 14/15) — Канали 15/16 (у ELRS — LQ %, RSSI %). Поки НЕ
+    // Вісь 14 / Вісь 15 — Канали 15/16 (у ELRS — LQ %, RSSI %). Поки НЕ
     // задіяні: це службові показники зв'язку, а не органи керування. Щоб
     // віддавати їх осями, увімкніть MAP_SIGNAL_AXES (див. calibration.h).
 #ifdef MAP_SIGNAL_AXES
     channel_data = crsf.getChannel(15);
     map_data = mapAxis(channel_data, CHANNEL_15_LOW_EP, CHANNEL_15_HIGH_EP);
-    gamepad.SetVbrz(map_data);
+    gamepad.SetAxis14(map_data);
 
     channel_data = crsf.getChannel(16);
     map_data = mapAxis(channel_data, CHANNEL_16_LOW_EP, CHANNEL_16_HIGH_EP);
-    gamepad.SetVno(map_data);
+    gamepad.SetAxis15(map_data);
 #endif
 
     // Багатопозиційні перемикачі налаштовуються у calibration.h
@@ -239,9 +237,6 @@ void packetChannels()
       #endif
     }
     // TODO що робити з каналами 13,14,15,16 (NA,NA,LQ,RSSI)
-
-    // Задати напрямок хатів, доступно 4 хати. напрямок за годинниковою стрілкою, 0=N 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW 8=CENTER
-    // gamepad.SetHat(0, 8);
 
     sendGamepadReport(false);
 }

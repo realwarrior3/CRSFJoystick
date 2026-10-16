@@ -8,9 +8,11 @@ NOTE: This library works with the Arduino MBED OS RP2040 core for the Raspberry 
       It doesn't work with the Earle Philhower core. If you're getting an error about "PluggableUSBHID.h", that's why.
 
 > **Note (this fork):** This copy is synced with upstream PicoGamepad (2025-04-28,
-> 16 axes) with local bug fixes: hat byte offsets corrected to 48/49, the `Vx`
-> HID usage fixed to `0x40`, `SetButton()` bounds fixed (`>= 128`), `inputArray`
-> zeroed in the constructors, and the invalid "System Undefined" axis removed.
+> 16 axes) with local changes: the hats (D-pad) were removed entirely from the
+> descriptor and the API, and axes 9-15 now use HID usages `0x39..0x3F` (instead
+> of `0x40..0x46`) so Chromium/Edge assign fixed axis indices. Also: `SetButton()`
+> bounds fixed (`>= 128`), `inputArray` zeroed in the constructors, and the
+> invalid "System Undefined" axis removed.
 
 This library was created for use with the RealRobots [rr_configurator](https://www.gitlab.com/realrobots/rr_configurator) GUI based game controller customization software but is being made available freely for use and modification by others.
 
@@ -23,10 +25,6 @@ This library was created for use with the RealRobots [rr_configurator](https://w
 - `SetAxis(int idx, int val)   - Set the value of axis 0-15 with 16 bit precision  -32767 to 32767.`
 
 - `SetButton(int idx, bool state) - Sets the state of any of the buttons, indexed 0-127`
-
-- `SetHat(int idx, int dir) - Set the direction of hats indexed 0-3.` 
-
-  -  `direction is clockwise 0=N 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW 8=CENTER`
 
 - `SetX(int val)  - Set the value of the X axis with 16 bit precision	 -32767 to 32767`
 
@@ -46,19 +44,19 @@ This library was created for use with the RealRobots [rr_configurator](https://w
 
 - `SetWheel(int val) - Set the value of the Wheel axis with 16 bit precision	 -32767 to 32767`
 
-- `SetVx(int val) - Set the value of the Vx axis with 16 bit precision	 -32767 to 32767`
+- `SetAxis9(int val) - Set the value of axis 9 with 16 bit precision	 -32767 to 32767`
 
-- `SetVy(int val) - Set the value of the Vy axis with 16 bit precision	 -32767 to 32767`
+- `SetAxis10(int val) - Set the value of axis 10 with 16 bit precision	 -32767 to 32767`
 
-- `SetVz(int val) - Set the value of the Vz axis with 16 bit precision	 -32767 to 32767`
+- `SetAxis11(int val) - Set the value of axis 11 with 16 bit precision	 -32767 to 32767`
 
-- `SetVbrx(int val) - Set the value of the Vbrx axis with 16 bit precision	 -32767 to 32767`
+- `SetAxis12(int val) - Set the value of axis 12 with 16 bit precision	 -32767 to 32767`
 
-- `SetVbry(int val) - Set the value of the Vbry axis with 16 bit precision	 -32767 to 32767`
+- `SetAxis13(int val) - Set the value of axis 13 with 16 bit precision	 -32767 to 32767`
 
-- `SetVbrz(int val) - Set the value of the Vbrz axis with 16 bit precision	 -32767 to 32767`
+- `SetAxis14(int val) - Set the value of axis 14 with 16 bit precision	 -32767 to 32767`
 
-- `SetVno(int val) - Set the value of the Vno axis with 16 bit precision	 -32767 to 32767`
+- `SetAxis15(int val) - Set the value of axis 15 with 16 bit precision	 -32767 to 32767`
 
 [Video instructions](https://www.youtube.com/watch?v=CNF7G-1LniI)
 
@@ -116,19 +114,16 @@ void loop() {
   // gamepad.SetSlider(val);
   // gamepad.SetDial(val);
   // gamepad.SetWheel(val);
-  // gamepad.SetVx(val);
-  // gamepad.SetVy(val);
-  // gamepad.SetVz(val);
-  // gamepad.SetVbrx(val);
-  // gamepad.SetVbry(val);
-  // gamepad.SetVbrz(val);
-  // gamepad.SetVno(val);
+  // gamepad.SetAxis9(val);
+  // gamepad.SetAxis10(val);
+  // gamepad.SetAxis11(val);
+  // gamepad.SetAxis12(val);
+  // gamepad.SetAxis13(val);
+  // gamepad.SetAxis14(val);
+  // gamepad.SetAxis15(val);
 
   // Set button 0 of 128 by reading button on digital pin 28
   gamepad.SetButton(0, !digitalRead(28));
-
-  // Set hat direction, 4 hats available. direction is clockwise 0=N 1=NE 2=E 3=SE 4=S 5=SW 6=W 7=NW 8=CENTER
-  // gamepad.SetHat(0, 8);
 
 
   // Send all inputs via HID
