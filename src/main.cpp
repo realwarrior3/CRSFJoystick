@@ -204,9 +204,10 @@ void packetChannels()
     map_data = mapAxis(channel_data, CHANNEL_14_LOW_EP, CHANNEL_14_HIGH_EP);
     gamepad.SetAxis13(map_data);
 
-    // Вісь 14 / Вісь 15 — Канали 15/16 (у ELRS — LQ %, RSSI %). Поки НЕ
-    // задіяні: це службові показники зв'язку, а не органи керування. Щоб
-    // віддавати їх осями, увімкніть MAP_SIGNAL_AXES (див. calibration.h).
+    // Вісь 14 / Вісь 15 — Канали 15/16. У Hybrid/Wide ELRS вони несуть
+    // LQ % / RSSI % (службові показники звʼязку), у режимі Full Res 16ch —
+    // звичайні канали. Поки НЕ задіяні: за потреби увімкніть MAP_SIGNAL_AXES
+    // (див. calibration.h).
 #ifdef MAP_SIGNAL_AXES
     channel_data = crsf.getChannel(15);
     map_data = mapAxis(channel_data, CHANNEL_15_LOW_EP, CHANNEL_15_HIGH_EP);
@@ -250,7 +251,6 @@ void packetChannels()
       Serial.print(" m: "); Serial.println(btn_last_state[i] ? HIGH : LOW);
       #endif
     }
-    // TODO що робити з каналами 13,14,15,16 (NA,NA,LQ,RSSI)
 
     #ifdef CH_PRINT
     // Друк лише при зміні — щоб не заливати порт при кожному пакеті (100+ разів/с)
