@@ -12,6 +12,11 @@
 #define BLINK_DELAY 500                  // затримка між змінами стану LED (мс)
 #define FAILSAFE_RESEND_MS 100           // як часто повторно надсилати центральний failsafe-стан, поки немає звʼязку (мс)
 
+// Розкоментуйте для друку кожного опитування кнопок у Serial Monitor:
+// для кожної кнопки друкується її id, значення каналу в µs (c:) і стан (m:).
+// Корисно, щоб зʼясувати, чи однакові значення каналів приходять з радіо.
+//#define BTN_PRINT
+
 static bool serialEcho;
 static char serialInBuff[64];
 static uint8_t serialInBuffLen;
